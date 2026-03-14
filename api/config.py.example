@@ -1,0 +1,44 @@
+
+
+# OpenSearch Configuration
+OPENSEARCH_HOST = "your-opensearch-host.com"
+OPENSEARCH_USERNAME = "your-username"
+OPENSEARCH_PASSWORD = "your-password"
+OPENSEARCH_INDEX = "huatai_rag"
+
+# model Configuration
+LLM_MODEL_NAME = "qwen.qwen3-235b-a22b-2507-v1:0"
+EMBEDDING_MODEL_NAME = "amazon.titan-embed-text-v1"
+REGION_NAME = "us-west-2"
+
+# Rerank Configuration
+RERANK_MODEL_NAME = "amazon.rerank-v1:0"
+RERANK_REGION_NAME = "us-west-2"
+
+# Document Processing Configuration
+TEXT_MAX_LENGTH = 300
+LLM_MAX_SIZE = 800
+IMAGE_RESOLUTION_SCALE = 2.0
+
+# File Processing Configuration
+FILES_PATH = './aws测试研报'
+
+# Document Converter Configuration
+ACCELERATOR_THREADS = 10
+CHUNK_SIZE_THRESHOLD = 100
+
+# Markdown Splitter Configuration
+MARKDOWN_HEADERS = [
+    ("#", "Header_1"),
+    ("##", "Header_2"),
+    ("###", "Header_3"),
+]
+
+# Batch Processing Configuration
+BATCH_SIZE = 10
+MAX_CHUNK_BYTES = 1 * 1024 * 1024
+
+# LLM Configuration
+LLM_MAX_TOKENS = 4096
+LLM_TEMPERATURE = 0.1
+LLM_MAX_RETRIES = 3

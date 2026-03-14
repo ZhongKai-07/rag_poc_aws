@@ -1,0 +1,18 @@
+# Python virtual environments
+api/venv/
+venv/
+env/
+ENV/
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables
+.env
+api/config.py
+
+# VSCode/IDE
+.vscode/
+.idea/

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG System API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .card {
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .btn {
+            display: inline-block;
+            background-color: #0366d6;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 1rem;
+            margin-right: 1rem;
+        }
+        .btn:hover {
+            background-color: #0255b3;
+        }
+        code {
+            background-color: #f6f8fa;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>RAG System API</h1>
+    <p>Backend service for RAG (Retrieval-Augmented Generation) system based on AWS Bedrock + OpenSearch.</p>
+    
+    <div class="card">
+        <h2>API Documentation</h2>
+        <p>Interactive API documentation is available via Swagger UI.</p>
+        <a href="/docs" class="btn">View API Docs</a>
+        <a href="/redoc" class="btn">View ReDoc</a>
+    </div>
+
+    <div class="card">
+        <h2>System Status</h2>
+        <p>Check the health status of the API service.</p>
+        <a href="/health" class="btn">Check Health</a>
+    </div>
+
+    <div class="card">
+        <h2>Endpoints</h2>
+        <ul>
+            <li><code>POST /upload_files</code> - Upload and process PDF files</li>
+            <li><code>POST /rag_answer</code> - Get answers from RAG system</li>
+            <li><code>GET /processed_files</code> - List processed files</li>
+        </ul>
+    </div>
+</body>
+</html>

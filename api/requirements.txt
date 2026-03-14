@@ -1,0 +1,31 @@
+# Core dependencies
+numpy>=1.21.0
+pandas>=1.3.0
+tqdm>=4.62.0
+Pillow>=8.3.0
+
+# LangChain dependencies (minimal for text splitting and embeddings)
+langchain-text-splitters>=0.0.1
+langchain-aws>=0.1.0
+
+# LLM client
+litellm>=1.0.0
+
+# Document processing
+docling>=1.0.0
+docling-core>=1.0.0
+
+# OpenSearch
+opensearch-py>=2.0.0
+
+# AWS SDK
+boto3>=1.26.0
+botocore>=1.29.0
+
+# FastAPI for web server
+fastapi>=0.100.0
+uvicorn>=0.23.0
+python-multipart>=0.0.6
+
+# Optional: for better performance
+numexpr>=2.8.0
