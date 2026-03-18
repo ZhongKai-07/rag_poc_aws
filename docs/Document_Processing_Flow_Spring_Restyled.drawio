@@ -1,0 +1,200 @@
+<mxfile host="65bd71144e">
+    <diagram id="doc-processing-flow" name="Document Processing Data Flow">
+        <mxGraphModel dx="2701" dy="1127" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="lane_fe" value="Frontend" style="shape=swimlane;startSize=30;horizontal=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;fontStyle=1;fontSize=13;fontColor=#666666;rounded=1;arcSize=8;swimlaneLine=1;collapsible=0;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="40" width="220" height="930" as="geometry"/>
+                </mxCell>
+                <mxCell id="fe_upload" value="Upload.tsx&#xa;(用户上传 PDF)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#4285F4;fontColor=#333333;fontSize=11;fontFamily=Inter;arcSize=20;" parent="lane_fe" vertex="1">
+                    <mxGeometry x="35" y="70" width="150" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="fe_result" value="处理结果展示&#xa;(indexName, chunkCount)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#4285F4;fontColor=#333333;fontSize=10;fontFamily=Inter;arcSize=20;" parent="lane_fe" vertex="1">
+                    <mxGeometry x="35" y="830" width="150" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane_be" value="Backend  (DocumentService)" style="shape=swimlane;startSize=30;horizontal=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;fontStyle=1;fontSize=13;fontColor=#666666;rounded=1;arcSize=8;swimlaneLine=1;collapsible=0;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="40" width="320" height="930" as="geometry"/>
+                </mxCell>
+                <mxCell id="docling_parser" value="DoclingParser&#xa;parse(file) → Markdown" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="lane_be" vertex="1">
+                    <mxGeometry x="35" y="160" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="pdfbox_parser" value="PDFBoxParser&#xa;(Fallback)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontFamily=Inter;arcSize=20;" parent="lane_be" vertex="1">
+                    <mxGeometry x="160" y="235" width="130" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_docling_fallback" value="ParseException" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#E53935;strokeWidth=1.5;endArrow=blockThin;endFill=1;dashed=1;dashPattern=8 4;fontFamily=Inter;fontSize=9;fontColor=#E53935;" parent="lane_be" source="docling_parser" target="pdfbox_parser" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="parsed_doc_label" value="ParsedDocument&#xa;(String markdownContent)" style="text;html=1;fontSize=9;fontColor=#888888;fontFamily=Inter;align=center;" parent="lane_be" vertex="1">
+                    <mxGeometry x="15" y="290" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="splitter" value="MarkdownTextSplitter&#xa;split(doc, headers, minChars)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="lane_be" vertex="1">
+                    <mxGeometry x="30" y="370" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="chunks_label" value="List&lt;TextChunk&gt;&#xa;[chunk_1 … chunk_n]" style="text;html=1;fontSize=9;fontColor=#888888;fontFamily=Inter;align=center;" parent="lane_be" vertex="1">
+                    <mxGeometry x="20" y="420" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="embedding_svc" value="EmbeddingService&#xa;embedDocuments(chunks)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="lane_be" vertex="1">
+                    <mxGeometry x="30" y="520" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="vectors_label" value="List&lt;float[]&gt; vectors&#xa;[n × 1536]" style="text;html=1;fontSize=9;fontColor=#888888;fontFamily=Inter;align=center;" parent="lane_be" vertex="1">
+                    <mxGeometry x="20" y="570" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="doc_index_repo" value="DocumentIndexRepository&#xa;bulkIndex()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="lane_be" vertex="1">
+                    <mxGeometry x="30" y="680" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="index_data_label" value="IndexDocument: indexName,&#xa;paragraph, sentenceVector,&#xa;sentence, source" style="text;html=1;fontSize=9;fontColor=#888888;fontFamily=Inter;align=center;" parent="lane_be" vertex="1">
+                    <mxGeometry x="15" y="630" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="record_repo" value="ProcessingRecordRepository&#xa;save()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontFamily=Inter;arcSize=20;" parent="lane_be" vertex="1">
+                    <mxGeometry x="30" y="830" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="record_label" value="ProcessingRecord&#xa;(fileName, indexName, processedAt)" style="text;html=1;fontSize=9;fontColor=#888888;fontFamily=Inter;align=center;" parent="lane_be" vertex="1">
+                    <mxGeometry x="10" y="880" width="230" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_parse_split" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="lane_be" source="pdfbox_parser" target="splitter" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_split_embed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="lane_be" source="splitter" target="embedding_svc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_embed_repo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="lane_be" source="embedding_svc" target="doc_index_repo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_repo_record" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="lane_be" source="doc_index_repo" target="record_repo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="step5_label" value="⑤ 数据入库 (OpenSearch)" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="lane_be" vertex="1">
+                    <mxGeometry x="25" y="610" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="step2_label" value="② PDF 解析 (Docling + Fallback)" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="lane_be" vertex="1">
+                    <mxGeometry x="30" y="115" width="250" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="step4_label" value="④ 向量化处理" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="lane_be" vertex="1">
+                    <mxGeometry x="15" y="490" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="step6_label" value="⑥ 注册处理记录" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="lane_be" vertex="1">
+                    <mxGeometry x="25" y="800" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane_aws" value="AWS Cloud Services" style="shape=swimlane;startSize=30;horizontal=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;fontStyle=1;fontSize=13;fontColor=#666666;rounded=1;arcSize=8;swimlaneLine=1;collapsible=0;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="740" y="40" width="310" height="790" as="geometry"/>
+                </mxCell>
+                <mxCell id="bedrock_embed" value="Bedrock&#xa;Titan Embed v1&#xa;(ap-northeast-1)&#xa;dim=1536" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#5C6BC0;fontColor=#283593;fontSize=10;fontFamily=Inter;arcSize=15;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="60" y="520" width="150" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="opensearch" value="OpenSearch Service&#xa;kNN 向量索引&#xa;(ap-east-1 香港)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=8;fillColor=#E8F5E9;strokeColor=#43A047;fontColor=#1B5E20;fontSize=10;fontFamily=Inter;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="60" y="670" width="150" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#E0E0E0;arcSize=10;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="35" y="280" width="200" height="155" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_title" value="图例" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#333333;fontFamily=Inter;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="115" y="285" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;arcSize=30;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="50" y="312" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg1t" value="Spring Boot Service" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="77" y="309" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#5C6BC0;arcSize=30;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="50" y="336" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg2t" value="Bedrock AI 服务" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="77" y="333" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg3" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;size=4;fillColor=#E8F5E9;strokeColor=#43A047;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="50" y="359" width="20" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg3t" value="持久化存储" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="77" y="357" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#4285F4;arcSize=30;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="50" y="383" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg4t" value="Controller / 前端" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="77" y="380" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg5" value="" style="endArrow=blockThin;html=1;strokeColor=#999999;strokeWidth=1.5;endFill=1;dashed=1;dashPattern=8 4;" parent="lane_aws" edge="1">
+                    <mxGeometry width="50" relative="1" as="geometry">
+                        <mxPoint x="50" y="414" as="sourcePoint"/>
+                        <mxPoint x="70" y="414" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="leg5t" value="返回 / 回调" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="77" y="405" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="step1_label" value="① 文件上传" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="78" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="step3_label" value="③ 文本分块 (Markdown Header)" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="375" y="365" width="250" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="user" value="用户" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#1A73E8;strokeColor=#1A73E8;fontColor=#333333;fontSize=11;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="-20" y="107.5" width="30" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_user_fe" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1.5;fontFamily=Inter;fontSize=10;endArrow=blockThin;endFill=1;" parent="1" source="user" target="fe_upload" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="controller" value="DocumentController&#xa;POST /api/documents/upload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#4285F4;fontColor=#333333;fontSize=10;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="395" y="110" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_fe_ctrl" value="POST multipart/form-data&#xa;+ directoryPath" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1.5;fontFamily=Inter;fontSize=9;fontColor=#888888;endArrow=blockThin;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="fe_upload" target="controller" edge="1">
+                    <mxGeometry x="-0.3" y="13" relative="1" as="geometry">
+                        <mxPoint y="1" as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="360" y="133"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_ctrl_docling" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1.5;fontFamily=Inter;fontSize=10;endArrow=blockThin;endFill=1;" parent="1" source="controller" target="docling_parser" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_embed_bedrock" value="embed(chunks)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#5C6BC0;strokeWidth=1.5;fontFamily=Inter;fontSize=9;fontColor=#5C6BC0;endArrow=blockThin;endFill=1;" parent="1" source="embedding_svc" target="bedrock_embed" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="760" y="583"/>
+                            <mxPoint x="760" y="583"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_bedrock_embed" value="float[] vectors (1536d)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#5C6BC0;strokeWidth=1.5;fontFamily=Inter;fontSize=9;fontColor=#5C6BC0;endArrow=blockThin;endFill=1;dashed=1;dashPattern=8 4;" parent="1" source="bedrock_embed" target="embedding_svc" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="800" y="600"/>
+                            <mxPoint x="800" y="600"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_repo_os" value="bulkIndex()&#xa;(vectors + text + metadata)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#43A047;strokeWidth=1.5;fontFamily=Inter;fontSize=9;fontColor=#2E7D32;endArrow=blockThin;endFill=1;" parent="1" source="doc_index_repo" target="opensearch" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_record_file" value="save()&#xa;(fileName, indexName, processedAt)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#43A047;strokeWidth=1.5;fontFamily=Inter;fontSize=9;fontColor=#2E7D32;endArrow=blockThin;endFill=1;" parent="1" source="record_repo" target="processed_files" edge="1">
+                    <mxGeometry x="0.0435" y="3" relative="1" as="geometry">
+                        <mxPoint y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_record_fe" value="ProcessingResult" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;fontFamily=Inter;fontSize=9;fontColor=#888888;endArrow=blockThin;endFill=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="record_repo" target="fe_result" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="290" y="893"/>
+                            <mxPoint x="290" y="893"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="docling_parser">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="620" y="325" as="sourcePoint"/>
+                        <mxPoint x="480" y="410" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="480" y="245"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="processed_files" value="Database&lt;br&gt;处理记录持久化" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=8;fillColor=#E8F5E9;strokeColor=#43A047;fontColor=#1B5E20;fontSize=10;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="862.5" width="150" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

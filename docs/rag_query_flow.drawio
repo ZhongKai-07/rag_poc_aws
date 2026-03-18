@@ -1,0 +1,276 @@
+<mxfile host="65bd71144e">
+    <diagram id="rag-query-flow" name="RAG Query Data Flow">
+        <mxGraphModel dx="2699" dy="761" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="lane_fe" value="Frontend (React)" style="shape=swimlane;startSize=28;horizontal=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;fontStyle=1;fontSize=12;fontColor=#666666;rounded=1;arcSize=8;collapsible=0;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="30" width="230" height="1040" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane_be" value="Spring Boot Backend" style="shape=swimlane;startSize=28;horizontal=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;fontStyle=1;fontSize=12;fontColor=#666666;rounded=1;arcSize=8;collapsible=0;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="30" width="360" height="1040" as="geometry"/>
+                </mxCell>
+                <mxCell id="build_resp" value="RAGResponse.builder()&#xa;.answer(llmAnswer)&#xa;.recallDocs(recalled)&#xa;.rerankDocs(reranked)&#xa;.build()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1E88E5;fontColor=#0D47A1;fontSize=9;fontFamily=Consolas;arcSize=15;align=left;spacingLeft=10;" parent="lane_be" vertex="1">
+                    <mxGeometry x="50" y="864" width="180" height="72" as="geometry"/>
+                </mxCell>
+                <mxCell id="resp_note" value="RAGResponse {&#xa;  answer: &quot;TCL科技2024年...&quot;,&#xa;  recallDocuments: [&#xa;    {content, score}...&#xa;  ],&#xa;  rerankDocuments: [&#xa;    {content, score, rerankScore}...&#xa;  ],&#xa;  sourceDocuments: [...]&#xa;}" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#FFFDE7;strokeColor=#FBC02D;fontColor=#795548;fontSize=8;fontFamily=Consolas;align=left;spacingLeft=6;" parent="lane_be" vertex="1">
+                    <mxGeometry x="-60" y="980" width="210" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_build_note" style="rounded=1;html=1;strokeColor=#FBC02D;strokeWidth=1;endArrow=open;endFill=0;dashed=1;dashPattern=4 4;" parent="lane_be" source="build_resp" target="resp_note" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane_aws" value="AWS Cloud Services" style="shape=swimlane;startSize=28;horizontal=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;fontStyle=1;fontSize=12;fontColor=#666666;rounded=1;arcSize=8;collapsible=0;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="660" y="30" width="370" height="600" as="geometry"/>
+                </mxCell>
+                <mxCell id="bedrock_emb" value="Bedrock Titan Embed v2&#xa;(ap-northeast-1)&#xa;→ float[1024]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#7986CB;fontColor=#283593;fontSize=10;fontFamily=Inter;arcSize=15;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="70" y="196.5" width="170" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="bedrock_rerank" value="Bedrock Rerank&#xa;amazon.rerank-v1:0&#xa;(ap-northeast-1)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#7986CB;fontColor=#283593;fontSize=10;fontFamily=Inter;arcSize=15;" parent="lane_aws" vertex="1">
+                    <mxGeometry x="70" y="476.5" width="170" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Bedrock LLM&#xa;Claude / Qwen&#xa;(ap-northeast-1)&#xa;temp=0.1  max_tokens=4096" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#7986CB;fontColor=#283593;fontSize=10;fontFamily=Inter;arcSize=15;" vertex="1" parent="lane_aws">
+                    <mxGeometry x="70" y="390" width="170" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="s1_label" value="① 用户提问" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1565C0;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="42" y="66" width="100" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="qa_page" value="QA Page (React)&#xa;选择文档 · 输入问题 · 设置参数" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#42A5F5;fontColor=#1A237E;fontSize=10;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="52" y="90" width="190" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="req_payload" value="RAGQueryRequest {&#xa;  sessionId, indexNames,&#xa;  query, topK,&#xa;  rerankThreshold,&#xa;  searchMethod&#xa;}" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#FFFDE7;strokeColor=#FBC02D;fontColor=#795548;fontSize=9;fontFamily=Consolas;align=left;spacingLeft=6;" parent="1" vertex="1">
+                    <mxGeometry x="52" y="160" width="190" height="85" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_qa_req" style="rounded=1;html=1;strokeColor=#BDBDBD;strokeWidth=1;endArrow=blockThin;endFill=1;dashed=1;dashPattern=4 4;" parent="1" source="qa_page" target="req_payload" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="s2_label" value="② 请求路由" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1565C0;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="66" width="100" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="rag_ctrl" value="RAGController&#xa;POST /api/v1/rag/query" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#42A5F5;fontColor=#1A237E;fontSize=10;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="330" y="90" width="180" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="rag_svc" value="RAGService.query()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1E88E5;fontColor=#0D47A1;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="330" y="155" width="180" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_fe_ctrl" value="POST JSON" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontFamily=Inter;fontSize=9;fontColor=#90A4AE;" parent="1" source="req_payload" target="rag_ctrl" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="270" y="200"/>
+                            <mxPoint x="270" y="111"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_ctrl_svc" style="rounded=1;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="rag_ctrl" target="rag_svc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="s3_label" value="③ 问题向量化" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1565C0;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="210" width="110" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="embed_query" value="EmbeddingModel.embed(query)&#xa;Spring AI → Bedrock Titan v2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1E88E5;fontColor=#0D47A1;fontSize=10;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="330" y="233" width="180" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_svc_embed" style="rounded=1;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="rag_svc" target="embed_query" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_emb_bed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#7986CB;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontSize=9;fontFamily=Inter;" parent="1" source="embed_query" target="bedrock_emb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="qvec_note" value="queryVector = [0.123, -0.456, ...]" style="text;html=1;fontSize=9;fontColor=#7986CB;fontFamily=Consolas;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="522" y="280" width="200" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="s4_label" value="④ 向量检索 (kNN + Hybrid)" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1565C0;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="300" width="200" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="search_svc" value="OpenSearchRepository&#xa;.hybridSearch(index, vector, query)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1E88E5;fontColor=#0D47A1;fontSize=10;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="330" y="323" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_emb_search" style="rounded=1;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="embed_query" target="search_svc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="opensearch" value="OpenSearch Service&#xa;kNN 向量索引&#xa;(ap-east-1 香港)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=8;fillColor=#E8F5E9;strokeColor=#66BB6A;fontColor=#1B5E20;fontSize=10;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="740" y="315" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_search_os" value="kNN + BM25 Query" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#66BB6A;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontFamily=Inter;fontSize=9;fontColor=#2E7D32;" parent="1" source="search_svc" target="opensearch" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="recall_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F8E9;strokeColor=#AED581;arcSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="310" y="393" width="220" height="82" as="geometry"/>
+                </mxCell>
+                <mxCell id="recall_title" value="Recall Documents (Top-K)" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#33691E;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="396" width="170" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="recall_d1" value="Doc1: &quot;TCL科技2024年归母净利同比下降15%...&quot;  score=85.2" style="text;html=1;fontSize=8;fontColor=#558B2F;fontFamily=Consolas;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="318" y="414" width="205" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="recall_d2" value="Doc2: &quot;主要原因是面板价格下跌...&quot;              score=78.6" style="text;html=1;fontSize=8;fontColor=#558B2F;fontFamily=Consolas;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="318" y="430" width="205" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="recall_d3" value="Doc3: &quot;半导体业务收入增长...&quot;                  score=72.1" style="text;html=1;fontSize=8;fontColor=#558B2F;fontFamily=Consolas;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="318" y="446" width="205" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_os_recall" style="rounded=1;html=1;strokeColor=#66BB6A;strokeWidth=1.5;endArrow=blockThin;endFill=1;dashed=1;dashPattern=6 4;" parent="1" source="opensearch" target="recall_box" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="660" y="345"/>
+                            <mxPoint x="660" y="434"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="s5_label" value="⑤ 文档重排" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1565C0;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="490" width="100" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="rerank_svc" value="RerankService.rerank()&#xa;Bedrock amazon.rerank-v1:0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1E88E5;fontColor=#0D47A1;fontSize=10;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="330" y="513" width="180" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_recall_rerank" style="rounded=1;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="recall_box" target="rerank_svc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_rerank_bed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#7986CB;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="rerank_svc" target="bedrock_rerank" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="rerank_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#B39DDB;arcSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="310" y="575" width="220" height="68" as="geometry"/>
+                </mxCell>
+                <mxCell id="rerank_title" value="Reranked (threshold=0.5 过滤)" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#4527A0;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="325" y="578" width="195" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="rr_d2" value="✓ Doc2  rerankScore=0.92  → Rank 1" style="text;html=1;fontSize=9;fontColor=#6A1B9A;fontFamily=Consolas;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="597" width="200" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="rr_d1" value="✓ Doc1  rerankScore=0.85  → Rank 2" style="text;html=1;fontSize=9;fontColor=#6A1B9A;fontFamily=Consolas;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="613" width="200" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="rr_d3" value="✗ Doc3  rerankScore=0.45  → Filtered" style="text;html=1;fontSize=9;fontColor=#BDBDBD;fontFamily=Consolas;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="629" width="200" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_bed_rrbox" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#7986CB;strokeWidth=1.5;endArrow=blockThin;endFill=1;dashed=1;dashPattern=6 4;" parent="1" source="bedrock_rerank" target="rerank_box" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="660" y="550"/>
+                            <mxPoint x="660" y="609"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="s6_label" value="⑥ 上下文格式化" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1565C0;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="660" width="120" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="format_ctx" value="buildContext(rerankedDocs)&#xa;拼接文档文本 → context string" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1E88E5;fontColor=#0D47A1;fontSize=10;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="330" y="683" width="180" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_rr_fmt" style="rounded=1;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="rerank_box" target="format_ctx" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="s7_label" value="⑦ LLM 生成答案" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1565C0;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="740" width="120" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="llm_call" value="ChatModel.call(prompt)&lt;br&gt;Spring AI → Huatai LLM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1E88E5;fontColor=#0D47A1;fontSize=10;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="330" y="763" width="180" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_fmt_llm" style="rounded=1;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="format_ctx" target="llm_call" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_llm_prompt" style="rounded=1;html=1;strokeColor=#FBC02D;strokeWidth=1;endArrow=open;endFill=0;dashed=1;dashPattern=4 4;" parent="1" source="prompt_note" target="llm_call" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_llm_bed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#7986CB;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="llm_call" target="bedrock_llm" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="s8_label" value="⑧ 组装 &amp; 返回结果" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1565C0;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="295" y="855" width="140" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_llm_resp" style="rounded=1;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="llm_call" target="build_resp" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="fe_result" value="答案展示页面&#xa;• 答案文本 (可溯源)&#xa;• Recall 文档 (可折叠)&#xa;• Rerank 文档 (可折叠)&#xa;• 置信度分数" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#42A5F5;fontColor=#1A237E;fontSize=10;fontFamily=Inter;arcSize=15;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="52" y="890" width="190" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_resp_fe" value="RAGResponse JSON" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontFamily=Inter;fontSize=9;fontColor=#90A4AE;" parent="1" source="build_resp" target="fe_result" edge="1">
+                    <mxGeometry x="-0.0015" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="320" y="930"/>
+                            <mxPoint x="320" y="930"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="legend_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#E0E0E0;arcSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="52" y="265" width="190" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_title" value="图例" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#333333;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="130" y="268" width="40" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg1" value="" style="rounded=1;html=1;fillColor=#BBDEFB;strokeColor=#1E88E5;arcSize=30;" parent="1" vertex="1">
+                    <mxGeometry x="62" y="293" width="18" height="12" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg1t" value="Spring Service / Repository" style="text;html=1;fontSize=9;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="86" y="290" width="148" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg2" value="" style="rounded=1;html=1;fillColor=#E8EAF6;strokeColor=#7986CB;arcSize=30;" parent="1" vertex="1">
+                    <mxGeometry x="62" y="313" width="18" height="12" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg2t" value="Bedrock AI 服务" style="text;html=1;fontSize=9;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="86" y="310" width="148" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg3" value="" style="shape=cylinder3;html=1;size=3;fillColor=#E8F5E9;strokeColor=#66BB6A;" parent="1" vertex="1">
+                    <mxGeometry x="62" y="333" width="18" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg3t" value="OpenSearch 向量库" style="text;html=1;fontSize=9;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="86" y="331" width="148" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg4" value="" style="shape=note;html=1;size=6;fillColor=#FFFDE7;strokeColor=#FBC02D;" parent="1" vertex="1">
+                    <mxGeometry x="62" y="353" width="18" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg4t" value="数据结构 / 模板注释" style="text;html=1;fontSize=9;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="86" y="351" width="148" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg5_line" value="" style="endArrow=blockThin;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endFill=1;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="62" y="378" as="sourcePoint"/>
+                        <mxPoint x="80" y="378" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="lg5t" value="同步调用" style="text;html=1;fontSize=9;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="86" y="371" width="60" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="lg6_line" value="" style="endArrow=blockThin;html=1;strokeColor=#90A4AE;strokeWidth=1.5;endFill=1;dashed=1;dashPattern=6 4;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="148" y="378" as="sourcePoint"/>
+                        <mxPoint x="166" y="378" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="lg6t" value="返回数据" style="text;html=1;fontSize=9;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="172" y="371" width="60" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="用户" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#1A73E8;strokeColor=#1A73E8;fontColor=#333333;fontSize=11;fontFamily=Inter;" vertex="1" parent="1">
+                    <mxGeometry x="-93" y="90" width="30" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1.5;fontFamily=Inter;fontSize=10;endArrow=blockThin;endFill=1;" edge="1" parent="1" source="2">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="52" y="115.5" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="-5" y="116"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5" value="华泰境外LLM Gateway" style="shape=swimlane;startSize=28;horizontal=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;fontStyle=1;fontSize=12;fontColor=#666666;rounded=1;arcSize=8;collapsible=0;fontFamily=Inter;" vertex="1" parent="1">
+                    <mxGeometry x="660" y="693" width="380" height="247" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="PromptTemplate&#xa;System: 合规知识库问答专家&#xa;  基于上下文回答, 不可编造&#xa;  标注来源文档和段落&#xa;User: context + question" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#FFFDE7;strokeColor=#FBC02D;fontColor=#795548;fontSize=9;fontFamily=Inter;align=left;spacingLeft=6;" vertex="1" parent="5">
+                    <mxGeometry x="20" y="610" width="195" height="78" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="Bedrock LLM&#xa;Claude / Qwen&#xa;(ap-northeast-1)&#xa;temp=0.1  max_tokens=4096" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#7986CB;fontColor=#283593;fontSize=10;fontFamily=Inter;arcSize=15;" vertex="1" parent="5">
+                    <mxGeometry x="55" y="721.5" width="170" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="RAGResponse {&#xa;  answer: &quot;TCL科技2024年...&quot;,&#xa;  recallDocuments: [&#xa;    {content, score}...&#xa;  ],&#xa;  rerankDocuments: [&#xa;    {content, score, rerankScore}...&#xa;  ],&#xa;  sourceDocuments: [...]&#xa;}" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#FFFDE7;strokeColor=#FBC02D;fontColor=#795548;fontSize=8;fontFamily=Consolas;align=left;spacingLeft=6;" vertex="1" parent="5">
+                    <mxGeometry x="20" y="835" width="210" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="bedrock_llm" value="huatai LLM&lt;br&gt;Gemini / Gpt&amp;nbsp; / Grok&lt;br&gt;LiteLLM部署" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#7986CB;fontColor=#283593;fontSize=10;fontFamily=Inter;arcSize=15;" parent="1" vertex="1">
+                    <mxGeometry x="715" y="751.5" width="170" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="prompt_note" value="PromptTemplate&#xa;System: 合规知识库问答专家&#xa;  基于上下文回答, 不可编造&#xa;  标注来源文档和段落&#xa;User: context + question" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#FFFDE7;strokeColor=#FBC02D;fontColor=#795548;fontSize=9;fontFamily=Inter;align=left;spacingLeft=6;" parent="1" vertex="1">
+                    <mxGeometry x="705" y="840" width="195" height="78" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

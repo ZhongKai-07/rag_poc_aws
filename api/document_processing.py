@@ -20,15 +20,23 @@ from embedding_model import init_embeddings_bedrock
 from opensearch_multimodel_dataload import add_multimodel_documents
 import config
 
-# Docling imports
-from docling_core.types.doc import ImageRefMode
-from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import PdfPipelineOptions, AcceleratorDevice, AcceleratorOptions
-from docling.document_converter import DocumentConverter, PdfFormatOption
-from docling.utils.export import generate_multimodal_pages
+# Try to import Docling, fallback to PyPDF2 on Windows
+try:
+    from docling_core.types.doc import ImageRefMode
+    from docling.datamodel.base_models import InputFormat
+    from docling.datamodel.pipeline_options import PdfPipelineOptions, AcceleratorDevice, AcceleratorOptions
+    from docling.document_converter import DocumentConverter, PdfFormatOption
+    from docling.utils.export import generate_multimodal_pages
+    DOCLING_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Docling import failed: {e}. Using PyPDF2 fallback.")
+    DOCLING_AVAILABLE = False
+
+# Fallback PDF parser for Windows
+from pypdf import PdfReader
 
 # Updated LangChain imports for new version
-from langchain_text_splitters import MarkdownHeaderTextSplitter
+from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -68,19 +76,28 @@ class DocumentProcessor:
 
     def _setup_document_converter(self, image_resolution_scale: float):
         """Setup document converter with pipeline options"""
-        pipeline_options = PdfPipelineOptions()
-        pipeline_options.images_scale = image_resolution_scale
-        pipeline_options.generate_page_images = True
-        pipeline_options.accelerator_options = AcceleratorOptions(
-            num_threads=config.ACCELERATOR_THREADS,
-            device=AcceleratorDevice.AUTO
-        )
+        if not DOCLING_AVAILABLE:
+            logging.info("Docling not available, using PyPDF2 fallback")
+            self.doc_converter = None
+            return
 
-        self.doc_converter = DocumentConverter(
-            format_options={
-                InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
-            }
-        )
+        try:
+            pipeline_options = PdfPipelineOptions()
+            pipeline_options.images_scale = image_resolution_scale
+            pipeline_options.generate_page_images = True
+            pipeline_options.accelerator_options = AcceleratorOptions(
+                num_threads=config.ACCELERATOR_THREADS,
+                device=AcceleratorDevice.AUTO
+            )
+
+            self.doc_converter = DocumentConverter(
+                format_options={
+                    InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+                }
+            )
+        except Exception as e:
+            logging.error(f"Failed to setup Docling converter: {e}")
+            self.doc_converter = None
     
     def _extract_header_footer(self, rows):
         """Extract header and footer content from document rows"""
@@ -200,6 +217,94 @@ class DocumentProcessor:
             logging.error(f"Error in _process_sentences: {str(e)}", exc_info=True)
             raise
     
+    def _process_with_pypdf(self, file_path: str, index_name: str):
+        """Process PDF using PyPDF2 (Windows compatible fallback)"""
+        logging.info(f"Processing with PyPDF2: {file_path}")
+
+        try:
+            reader = PdfReader(file_path)
+            text_content = []
+
+            for page_num, page in enumerate(reader.pages):
+                text = page.extract_text()
+                if text:
+                    text_content.append(f"## Page {page_num + 1}\n\n{text}")
+
+            markdown_document = "\n\n".join(text_content)
+            logging.info(f"Extracted {len(reader.pages)} pages, {len(markdown_document)} characters")
+
+            # Split text using recursive splitter since we don't have markdown headers
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000,
+                chunk_overlap=200,
+                separators=["\n\n", "\n", "。", ". ", " ", ""]
+            )
+            chunks = text_splitter.split_text(markdown_document)
+
+            logging.info(f"Split into {len(chunks)} chunks")
+
+            # Process chunks
+            for i, chunk in enumerate(chunks):
+                if len(chunk.strip()) > 50:  # Skip very short chunks
+                    self._process_text_chunk(chunk, file_path, index_name, i)
+
+        except Exception as e:
+            logging.error(f"PyPDF2 processing failed: {e}", exc_info=True)
+            raise
+
+    def _process_text_chunk(self, content: str, file_name: str, index_name: str, chunk_id: int):
+        """Process a single text chunk"""
+        try:
+            metadata = {
+                'sentence': content[:self.text_max_length] if len(content) > self.text_max_length else content,
+                'source': os.path.basename(file_name),
+                'chunk_id': chunk_id
+            }
+
+            text_embeddings = self.embeddings.embed_documents([metadata['sentence']])
+
+            add_multimodel_documents(
+                index_name,
+                texts=[content],
+                embeddings=text_embeddings,
+                metadatas=[metadata]
+            )
+            logging.info(f'Chunk {chunk_id} saved to vector store: {index_name}')
+
+        except Exception as e:
+            logging.error(f"Error processing chunk {chunk_id}: {e}", exc_info=True)
+            raise
+
+    def _process_with_docling(self, file_path: str, index_name: str):
+        """Process PDF using Docling"""
+        logging.info('Converting PDF document with Docling...')
+        conv_res = self.doc_converter.convert(file_path)
+
+        # Extract multimodal pages
+        rows = []
+        for (content_text, content_md, content_dt, page_cells, page_segments, page) in generate_multimodal_pages(conv_res):
+            rows.append({
+                "contents": content_text,
+                "contents_md": content_md
+            })
+
+        # Extract headers and footers
+        header, end_page = self._extract_header_footer(rows)
+
+        # Export to markdown
+        markdown_document = conv_res.document.export_to_markdown(image_mode=ImageRefMode.EMBEDDED)
+        print('Markdown document extracted')
+        print('-' * 50)
+
+        # Clean markdown document
+        markdown_document = self._clean_markdown_document(markdown_document, header, end_page)
+
+        # Split markdown by headers
+        md_header_splits = self.markdown_splitter.split_text(markdown_document)
+
+        # Process text splits
+        self._process_text_splits(md_header_splits, file_path, index_name)
+
     def process_file(self, file_path, index_name: str):
         """Process a single PDF file"""
         try:
@@ -207,42 +312,16 @@ class DocumentProcessor:
             print(f'Processing file: {file_path}')
             logging.info(f'Starting to process file: {file_path}')
 
-            # Convert document
-            logging.info('Converting PDF document...')
-            conv_res = self.doc_converter.convert(file_path)
-            convert_time = time.time() - start_time
-            print(f'Convert file time: {convert_time:.2f}s')
-            logging.info(f'PDF conversion completed in {convert_time:.2f}s')
-
-            # Extract multimodal pages
-            logging.info('Extracting multimodal pages...')
-            rows = []
-            for (content_text, content_md, content_dt, page_cells, page_segments, page) in generate_multimodal_pages(conv_res):
-                rows.append({
-                    "contents": content_text,
-                    "contents_md": content_md
-                })
-            logging.info(f'Extracted {len(rows)} pages')
-
-            # Extract headers and footers
-            header, end_page = self._extract_header_footer(rows)
-
-            # Export to markdown
-            logging.info('Exporting to markdown...')
-            markdown_document = conv_res.document.export_to_markdown(image_mode=ImageRefMode.EMBEDDED)
-            print('Markdown document extracted')
-            print('-' * 50)
-
-            # Clean markdown document
-            markdown_document = self._clean_markdown_document(markdown_document, header, end_page)
-
-            # Split markdown by headers
-            logging.info('Splitting markdown by headers...')
-            md_header_splits = self.markdown_splitter.split_text(markdown_document)
-            logging.info(f'Split into {len(md_header_splits)} sections')
-
-            # Process text splits
-            self._process_text_splits(md_header_splits, file_path, index_name)
+            # Try Docling first, fallback to PyPDF2
+            if self.doc_converter and DOCLING_AVAILABLE:
+                try:
+                    self._process_with_docling(file_path, index_name)
+                except Exception as docling_error:
+                    logging.warning(f"Docling failed: {docling_error}. Falling back to PyPDF2")
+                    self._process_with_pypdf(file_path, index_name)
+            else:
+                logging.info("Using PyPDF2 for PDF processing")
+                self._process_with_pypdf(file_path, index_name)
 
             total_time = time.time() - start_time
             print(f'Total processing time: {total_time:.2f}s')

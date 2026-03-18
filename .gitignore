@@ -16,3 +16,8 @@ api/config.py
 # VSCode/IDE
 .vscode/
 .idea/
+
+# Log file
+api/documents/
+api/question_history/
+

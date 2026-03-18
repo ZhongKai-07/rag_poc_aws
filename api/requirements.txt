@@ -14,6 +14,7 @@ litellm>=1.0.0
 # Document processing
 docling>=1.0.0
 docling-core>=1.0.0
+pypdf>=3.0.0  # Windows compatible PDF parser
 
 # OpenSearch
 opensearch-py>=2.0.0

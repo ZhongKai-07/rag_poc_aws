@@ -148,7 +148,7 @@ def _bulk_ingest_embeddings(
 
 def _default_text_mapping(
     dim: int,
-    engine: str = "nmslib",
+    engine: str = "faiss",  # Changed default from nmslib to faiss
     space_type: str = "l2",
     ef_search: int = 512,
     ef_construction: int = 512,
@@ -199,7 +199,7 @@ def add_multimodel_documents(
         _validate_embeddings_and_bulk_size(len(embeddings), bulk_size)
         text_field = kwargs.get("text_field", "paragraph")
         dim = len(embeddings[0])
-        engine = kwargs.get("engine", "nmslib")
+        engine = kwargs.get("engine", "faiss")  # Changed default from nmslib to faiss
         space_type = kwargs.get("space_type", "l2")
         ef_search = kwargs.get("ef_search", 512)
         ef_construction = kwargs.get("ef_construction", 512)

@@ -1,0 +1,188 @@
+<mxfile host="65bd71144e">
+    <diagram id="parser-decision-flow" name="Parser Selection Decision Flow">
+        <mxGraphModel dx="846" dy="690" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1400" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="解析器选择决策流程" style="text;html=1;fontSize=15;fontStyle=1;fontColor=#333333;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="350" y="20" width="300" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="step1_label" value="①" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="60" width="20" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="upload" value="文档上传&#xa;DocumentController" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#4285F4;fontColor=#333333;fontSize=11;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="80" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_upload_d1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="upload" target="d1_bda_avail" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="step2_label" value="②" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="150" width="20" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="d1_bda_avail" value="BDA 服务&#xa;是否可用？" style="shape=diamond;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FFA000;fontColor=#E65100;fontSize=10;fontStyle=1;fontFamily=Inter;size=18;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="170" width="140" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_d1_no" value="否" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#E53935;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontFamily=Inter;fontSize=10;fontColor=#E53935;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="d1_bda_avail" target="docling_direct" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="docling_direct" value="Docling 本地解析&#xa;DoclingParser.parse()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="720" y="192" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_docling_direct_chunk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="docling_direct" target="rechunk" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="810" y="920"/>
+                            <mxPoint x="490" y="920"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_d1_yes" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#43A047;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontFamily=Inter;fontSize=10;fontColor=#2E7D32;fontStyle=1;" parent="1" source="d1_bda_avail" target="s3_upload" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="step3_label" value="③" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="290" width="20" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="s3_upload" value="上传至 S3&#xa;uploadToS3()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="415" y="310" width="150" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_s3_bda" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="s3_upload" target="invoke_bda" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="invoke_bda" value="调用 BDA&#xa;InvokeDataAutomationAsync" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;size=12;fillColor=#FFE0B2;strokeColor=#FF9800;fontColor=#BF360C;fontSize=10;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="395" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_bda_d2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="invoke_bda" target="d2_bda_success" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="step4_label" value="④" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="470" width="20" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="d2_bda_success" value="BDA 处理&#xa;是否成功？" style="shape=diamond;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FFA000;fontColor=#E65100;fontSize=10;fontStyle=1;fontFamily=Inter;size=18;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="490" width="140" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_d2_no" value="否" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#E53935;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontFamily=Inter;fontSize=10;fontColor=#E53935;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="d2_bda_success" target="docling_fallback" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="docling_fallback" value="Docling 本地解析&#xa;(降级 Fallback)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="720" y="512" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="fallback_note" value="降级路径：BDA 超时 / 异常&#xa;自动切换本地 Docling" style="text;html=1;fontSize=9;fontColor=#888888;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="710" y="560" width="200" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_docling_fb_chunk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="docling_fallback" target="rechunk" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="810" y="920"/>
+                            <mxPoint x="490" y="920"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_d2_yes" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#43A047;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontFamily=Inter;fontSize=10;fontColor=#2E7D32;fontStyle=1;" parent="1" source="d2_bda_success" target="parse_bda" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="step5_label" value="⑤" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="610" width="20" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="parse_bda" value="读取 BDA 标准输出&#xa;parseBdaOutput()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="630" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="bda_output_note" value="S3 标准输出 JSON&#xa;(Markdown + Tables + Figures)" style="text;html=1;fontSize=9;fontColor=#888888;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="395" y="675" width="190" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_parse_d3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="parse_bda" target="d3_confidence" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="step6_label" value="⑥" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="720" width="20" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="d3_confidence" value="置信度&#xa;是否达标？" style="shape=diamond;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FFA000;fontColor=#E65100;fontSize=10;fontStyle=1;fontFamily=Inter;size=18;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="740" width="140" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_d3_low" value="低置信度页" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#FF9800;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontFamily=Inter;fontSize=9;fontColor=#E65100;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="d3_confidence" target="manual_review" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="manual_review" value="标记为需人工复核&#xa;ManualReviewFlag" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#FF9800;fontColor=#E65100;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="720" y="762" width="180" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="review_note" value="低置信度页面单独标记&#xa;不阻塞主流程" style="text;html=1;fontSize=9;fontColor=#888888;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="715" y="810" width="190" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_d3_pass" value="达标" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#43A047;strokeWidth=1.5;endArrow=blockThin;endFill=1;fontFamily=Inter;fontSize=10;fontColor=#2E7D32;fontStyle=1;" parent="1" source="d3_confidence" target="rechunk" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="step7_label" value="⑦ 进入后续处理" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="880" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="rechunk" value="二次分块流程&#xa;rechunk() → TextSplitter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="395" y="940" width="190" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="next_arrow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="rechunk" target="next_steps" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="next_steps" value="向量化 → 入库 → 注册记录&#xa;(后续流程同主流程图)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#4285F4;fontColor=#333333;fontSize=10;fontFamily=Inter;arcSize=20;dashed=1;dashPattern=8 4;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="1030" width="200" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="main_path_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=none;opacity=15;" parent="1" vertex="1">
+                    <mxGeometry x="385" y="70" width="210" height="930" as="geometry"/>
+                </mxCell>
+                <mxCell id="fallback_path_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=none;opacity=15;" parent="1" vertex="1">
+                    <mxGeometry x="695" y="170" width="210" height="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="main_path_label" value="BDA 主路径" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#2E7D32;fontFamily=Inter;align=center;opacity=60;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="50" width="120" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="fallback_path_label" value="降级 / 异常路径" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#E65100;fontFamily=Inter;align=center;opacity=60;" parent="1" vertex="1">
+                    <mxGeometry x="745" y="170" width="130" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#E0E0E0;arcSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="130" width="200" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_title" value="图例" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#333333;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="155" y="135" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;arcSize=30;" parent="1" vertex="1">
+                    <mxGeometry x="95" y="162" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg1t" value="Spring Boot Service" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="122" y="159" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg2" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;size=5;fillColor=#FFE0B2;strokeColor=#FF9800;" parent="1" vertex="1">
+                    <mxGeometry x="95" y="186" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg2t" value="BDA 异步调用" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="122" y="183" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg3" value="" style="shape=diamond;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FFA000;size=5;" parent="1" vertex="1">
+                    <mxGeometry x="95" y="210" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg3t" value="决策判断" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="122" y="207" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#FF9800;arcSize=30;" parent="1" vertex="1">
+                    <mxGeometry x="95" y="234" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg4t" value="人工复核标记" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="122" y="231" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg5" value="" style="endArrow=blockThin;html=1;strokeColor=#43A047;strokeWidth=1.5;endFill=1;" parent="1" edge="1">
+                    <mxGeometry width="50" relative="1" as="geometry">
+                        <mxPoint x="95" y="264" as="sourcePoint"/>
+                        <mxPoint x="115" y="264" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="leg5t" value="正常路径 (是)" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="122" y="255" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg6" value="" style="endArrow=blockThin;html=1;strokeColor=#E53935;strokeWidth=1.5;endFill=1;" parent="1" edge="1">
+                    <mxGeometry width="50" relative="1" as="geometry">
+                        <mxPoint x="95" y="288" as="sourcePoint"/>
+                        <mxPoint x="115" y="288" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="leg6t" value="异常路径 (否)" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="122" y="279" width="140" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

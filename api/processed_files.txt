@@ -1,0 +1,6 @@
+{"file_name": "AI质检-业务流程简述.pdf", "index_name": "f17e1097"}
+{"file_name": "(1) OTCD - ISDA & CSA in same doc.pdf", "index_name": "2f295fa6"}
+{"file_name": "(2) OTCD - ISDA.pdf", "index_name": "dca3cd03"}
+{"file_name": "Mars OB境外开户系统操作手册.pdf", "index_name": "4c408463"}
+{"file_name": "PRC Client.pdf", "index_name": "2374dcf7"}
+{"file_name": "Onboarding Decision Chart.pdf", "index_name": "32a592c0"}

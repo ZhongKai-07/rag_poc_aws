@@ -1,0 +1,363 @@
+<mxfile host="app.diagrams.net" modified="2026-03-16T00:00:00.000Z" agent="Claude" version="24.0.0" type="device">
+  <diagram name="Document Processing Data Flow" id="doc-processing-flow">
+    <mxGraphModel dx="1422" dy="762" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1560" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ========== TITLE ========== -->
+        <mxCell id="title" value="Document Processing Data Flow  (Spring Architecture)"
+          style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=17;fontStyle=1;fontColor=#111827;"
+          vertex="1" parent="1">
+          <mxGeometry x="20" y="16" width="1060" height="32" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STEP 0: USER UPLOAD ========== -->
+        <!-- Upload.tsx -->
+        <mxCell id="upload-tsx" value="&lt;b&gt;Upload.tsx&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px'&gt;用户上传 PDF&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#2563EB;strokeWidth=2;fontSize=11;fontColor=#1E3A8A;arcSize=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="64" width="160" height="52" as="geometry" />
+        </mxCell>
+
+        <!-- arrow upload → controller -->
+        <mxCell id="arr-upload-ctrl" value="&lt;b&gt;POST /api/documents/upload&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#374151'&gt;MultipartFile + directoryPath&lt;/font&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#2563EB;strokeWidth=2;endArrow=block;endFill=1;fontColor=#1D4ED8;fontSize=10;fontStyle=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="90" as="sourcePoint" />
+            <mxPoint x="450" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- DocumentController -->
+        <mxCell id="ctrl" value="&lt;b&gt;DocumentController&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#166534'&gt;@RestController&lt;/font&gt;&lt;br/&gt;&lt;font style='font-size:9px'&gt;uploadFiles(MultipartFile file)&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=2;fontSize=11;fontColor=#064E3B;arcSize=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="450" y="64" width="220" height="52" as="geometry" />
+        </mxCell>
+
+        <!-- arrow controller → service -->
+        <mxCell id="arr-ctrl-svc" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#059669;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="560" y="116" as="sourcePoint" />
+            <mxPoint x="560" y="155" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== DOCUMENT PROCESSING SERVICE BOX ========== -->
+        <mxCell id="svc-bg" value="&lt;b&gt;DocumentProcessingService&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#92400E'&gt;@Service&lt;/font&gt;"
+          style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=2.5;fontSize=13;fontColor=#78350F;fontStyle=1;verticalAlign=top;spacingTop=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="155" width="980" height="1060" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STEP 1: PDF PARSING ========== -->
+        <mxCell id="step1-bg" value=""
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;"
+          vertex="1" parent="1">
+          <mxGeometry x="85" y="220" width="930" height="210" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step1-label" value="Step 1　PDF 解析"
+          style="text;html=1;strokeColor=none;fillColor=#F59E0B;rounded=1;arcSize=30;fontSize=11;fontStyle=1;fontColor=#FFFFFF;align=center;"
+          vertex="1" parent="1">
+          <mxGeometry x="85" y="220" width="150" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- Docling box -->
+        <mxCell id="docling" value="&lt;b&gt;DoclingParser&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#1E40AF'&gt;// Primary parser&lt;/font&gt;&lt;br/&gt;&lt;font style='font-size:9px'&gt;Document doc =&lt;br/&gt;doclingParser.parse(file);&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=10;fontColor=#1E3A8A;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="115" y="262" width="200" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- fallback arrow -->
+        <mxCell id="arr-fallback" value="&lt;b&gt;ParseException&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px'&gt;fallback&lt;/font&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#DC2626;strokeWidth=1.5;endArrow=block;endFill=1;dashed=1;fontColor=#DC2626;fontSize=9;fontStyle=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="315" y="327" as="sourcePoint" />
+            <mxPoint x="430" y="327" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- PyPDF2 / PDFBox box -->
+        <mxCell id="pdfbox" value="&lt;b&gt;PDFBoxParser&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#1E40AF'&gt;// Fallback parser&lt;/font&gt;&lt;br/&gt;&lt;font style='font-size:9px'&gt;Document doc =&lt;br/&gt;pdfBoxParser.parse(file);&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=10;fontColor=#1E3A8A;align=center;verticalAlign=middle;"
+          vertex="1" parent="1">
+          <mxGeometry x="430" y="262" width="200" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- merge arrow → markdown -->
+        <mxCell id="arr-docling-md" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#78350F;strokeWidth=1.5;endArrow=none;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="215" y="392" as="sourcePoint" />
+            <mxPoint x="215" y="415" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="215" y="415" />
+              <mxPoint x="760" y="415" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arr-pdfbox-md" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#78350F;strokeWidth=1.5;endArrow=none;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="392" as="sourcePoint" />
+            <mxPoint x="530" y="415" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="530" y="415" />
+              <mxPoint x="760" y="415" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arr-merge-md" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#78350F;strokeWidth=1.5;endArrow=block;endFill=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="415" as="sourcePoint" />
+            <mxPoint x="760" y="395" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Markdown output -->
+        <mxCell id="markdown-out" value="&lt;b&gt;ParsedDocument&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px'&gt;String markdownContent&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;strokeWidth=1.5;fontSize=10;fontColor=#065F46;"
+          vertex="1" parent="1">
+          <mxGeometry x="660" y="262" width="190" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STEP 1→2 ARROW ========== -->
+        <mxCell id="arr-s1-s2" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#D97706;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="560" y="430" as="sourcePoint" />
+            <mxPoint x="560" y="468" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== STEP 2: TEXT CHUNKING ========== -->
+        <mxCell id="step2-bg" value=""
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;"
+          vertex="1" parent="1">
+          <mxGeometry x="85" y="468" width="930" height="190" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step2-label" value="Step 2　文本分块"
+          style="text;html=1;strokeColor=none;fillColor=#F59E0B;rounded=1;arcSize=30;fontSize=11;fontStyle=1;fontColor=#FFFFFF;align=center;"
+          vertex="1" parent="1">
+          <mxGeometry x="85" y="468" width="150" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- MarkdownHeaderTextSplitter -->
+        <mxCell id="splitter" value="&lt;b&gt;MarkdownTextSplitter&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#1E40AF'&gt;@Component&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=10;fontColor=#1E3A8A;verticalAlign=top;spacingTop=8;"
+          vertex="1" parent="1">
+          <mxGeometry x="115" y="510" width="460" height="118" as="geometry" />
+        </mxCell>
+
+        <mxCell id="splitter-code" value="List&lt;TextChunk&gt; chunks = splitter.split(&lt;br/&gt;    doc,&lt;br/&gt;    Map.of(&apos;#&apos;,&apos;h1&apos;, &apos;##&apos;,&apos;h2&apos;, &apos;###&apos;,&apos;h3&apos;),&lt;br/&gt;    MIN_CHARS_PER_CHUNK  // 100&lt;br/&gt;);"
+          style="text;html=1;strokeColor=#93C5FD;fillColor=#F0F9FF;fontSize=9;fontColor=#1E3A8A;align=left;spacingLeft=8;rounded=1;arcSize=5;fontFamily=Courier New;"
+          vertex="1" parent="1">
+          <mxGeometry x="125" y="550" width="440" height="68" as="geometry" />
+        </mxCell>
+
+        <!-- TextChunks output -->
+        <mxCell id="chunks-out" value="&lt;b&gt;List&lt;TextChunk&gt;&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px'&gt;[chunk_1 … chunk_n]&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;strokeWidth=1.5;fontSize=10;fontColor=#065F46;"
+          vertex="1" parent="1">
+          <mxGeometry x="660" y="510" width="330" height="118" as="geometry" />
+        </mxCell>
+
+        <!-- arrow splitter → chunks -->
+        <mxCell id="arr-split-chunk" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#78350F;strokeWidth=1.5;endArrow=block;endFill=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="575" y="569" as="sourcePoint" />
+            <mxPoint x="660" y="569" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== STEP 2→3 ARROW ========== -->
+        <mxCell id="arr-s2-s3" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#D97706;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="560" y="658" as="sourcePoint" />
+            <mxPoint x="560" y="696" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== STEP 3: VECTORIZATION ========== -->
+        <mxCell id="step3-bg" value=""
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;"
+          vertex="1" parent="1">
+          <mxGeometry x="85" y="696" width="930" height="210" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step3-label" value="Step 3　向量化处理"
+          style="text;html=1;strokeColor=none;fillColor=#F59E0B;rounded=1;arcSize=30;fontSize=11;fontStyle=1;fontColor=#FFFFFF;align=center;"
+          vertex="1" parent="1">
+          <mxGeometry x="85" y="696" width="160" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- EmbeddingService -->
+        <mxCell id="emb-svc" value="&lt;b&gt;EmbeddingService&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#1E40AF'&gt;@Service  ·  AWS Bedrock Titan&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=10;fontColor=#1E3A8A;verticalAlign=top;spacingTop=8;"
+          vertex="1" parent="1">
+          <mxGeometry x="115" y="738" width="460" height="138" as="geometry" />
+        </mxCell>
+
+        <mxCell id="emb-code" value="List&lt;float[]&gt; vectors =&lt;br/&gt;    embeddingService.embedDocuments(&lt;br/&gt;        chunks.stream()&lt;br/&gt;              .map(TextChunk::getText)&lt;br/&gt;              .toList()&lt;br/&gt;    );&lt;br/&gt;&lt;font color=&apos;#6B7280&apos;&gt;// Model: amazon.titan-embed-text-v1&lt;br/&gt;// Dim: 1536  ·  Region: ap-northeast-1&lt;/font&gt;"
+          style="text;html=1;strokeColor=#93C5FD;fillColor=#F0F9FF;fontSize=9;fontColor=#1E3A8A;align=left;spacingLeft=8;rounded=1;arcSize=5;fontFamily=Courier New;"
+          vertex="1" parent="1">
+          <mxGeometry x="125" y="775" width="440" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Embeddings output -->
+        <mxCell id="emb-out" value="&lt;b&gt;List&lt;float[]&gt;&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px'&gt;embeddings [n × 1536]&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;strokeWidth=1.5;fontSize=10;fontColor=#065F46;"
+          vertex="1" parent="1">
+          <mxGeometry x="660" y="738" width="330" height="138" as="geometry" />
+        </mxCell>
+
+        <!-- arrow emb-svc → emb-out -->
+        <mxCell id="arr-emb-out" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#78350F;strokeWidth=1.5;endArrow=block;endFill=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="575" y="807" as="sourcePoint" />
+            <mxPoint x="660" y="807" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== STEP 3→4 ARROW ========== -->
+        <mxCell id="arr-s3-s4" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#D97706;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="560" y="906" as="sourcePoint" />
+            <mxPoint x="560" y="944" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== STEP 4: DATA PERSISTENCE ========== -->
+        <mxCell id="step4-bg" value=""
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;"
+          vertex="1" parent="1">
+          <mxGeometry x="85" y="944" width="930" height="240" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step4-label" value="Step 4　数据入库"
+          style="text;html=1;strokeColor=none;fillColor=#F59E0B;rounded=1;arcSize=30;fontSize=11;fontStyle=1;fontColor=#FFFFFF;align=center;"
+          vertex="1" parent="1">
+          <mxGeometry x="85" y="944" width="150" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- DocumentIndexRepository -->
+        <mxCell id="repo" value="&lt;b&gt;DocumentIndexRepository&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#1E40AF'&gt;@Repository&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=10;fontColor=#1E3A8A;verticalAlign=top;spacingTop=8;"
+          vertex="1" parent="1">
+          <mxGeometry x="115" y="986" width="460" height="168" as="geometry" />
+        </mxCell>
+
+        <mxCell id="repo-code" value="String indexName = DigestUtils.md5Hex(file.getName()).substring(0, 8);&lt;br/&gt;&lt;br/&gt;List&lt;IndexDocument&gt; docs = IntStream&lt;br/&gt;    .range(0, chunks.size()).mapToObj(i -&gt;&lt;br/&gt;        IndexDocument.builder()&lt;br/&gt;            .indexName(indexName)&lt;br/&gt;            .paragraph(chunks.get(i).getText())&lt;br/&gt;            .sentenceVector(vectors.get(i)) // float[1536]&lt;br/&gt;            .sentence(chunks.get(i).getSummary())&lt;br/&gt;            .source(file.getName())&lt;br/&gt;            .build()&lt;br/&gt;    ).toList();&lt;br/&gt;repository.bulkIndex(docs);"
+          style="text;html=1;strokeColor=#93C5FD;fillColor=#F0F9FF;fontSize=9;fontColor=#1E3A8A;align=left;spacingLeft=8;rounded=1;arcSize=5;fontFamily=Courier New;"
+          vertex="1" parent="1">
+          <mxGeometry x="125" y="1023" width="440" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- OpenSearch Index output -->
+        <mxCell id="os-out" value="&lt;b&gt;OpenSearch Index&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px'&gt;ap-east-1 (Hong Kong)&lt;br/&gt;Index: {indexName}&lt;br/&gt;&lt;br/&gt;sentence_vector: float[1536]&lt;br/&gt;paragraph  |  sentence  |  source&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=2;fontSize=10;fontColor=#4C1D95;"
+          vertex="1" parent="1">
+          <mxGeometry x="660" y="986" width="330" height="168" as="geometry" />
+        </mxCell>
+
+        <!-- arrow repo → opensearch -->
+        <mxCell id="arr-repo-os" value="&lt;b&gt;bulkIndex()&lt;/b&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#7C3AED;strokeWidth=2;endArrow=block;endFill=1;fontColor=#4C1D95;fontSize=9;fontStyle=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="575" y="1070" as="sourcePoint" />
+            <mxPoint x="660" y="1070" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== STEP 4 → PROCESSED RECORD ARROW ========== -->
+        <mxCell id="arr-svc-record" value=""
+          style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#D97706;strokeWidth=2;endArrow=block;endFill=1;"
+          edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="560" y="1215" as="sourcePoint" />
+            <mxPoint x="560" y="1265" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== PROCESSING RECORD ========== -->
+        <mxCell id="record-bg" value="&lt;b&gt;ProcessingRecordRepository&lt;/b&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#6D28D9'&gt;@Repository&lt;/font&gt;&lt;br/&gt;&lt;br/&gt;&lt;font style='font-size:9px;font-family:Courier New'&gt;recordRepo.save(&lt;br/&gt;    ProcessingRecord.of(file.getName(), indexName)&lt;br/&gt;);&lt;/font&gt;&lt;br/&gt;&lt;br/&gt;&lt;font style='font-size:9px;color:#6B7280'&gt;// 写入 processed_files.txt&lt;br/&gt;// { fileName, indexName, processedAt }&lt;/font&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#7C3AED;strokeWidth=2;fontSize=10;fontColor=#4C1D95;align=left;spacingLeft=16;verticalAlign=top;spacingTop=10;"
+          vertex="1" parent="1">
+          <mxGeometry x="300" y="1265" width="520" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- ========== LEGEND ========== -->
+        <mxCell id="legend-bg" value=""
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#D1D5DB;strokeWidth=1.5;"
+          vertex="1" parent="1">
+          <mxGeometry x="60" y="1440" width="980" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-t" value="&lt;b&gt;Legend&lt;/b&gt;"
+          style="text;html=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#374151;"
+          vertex="1" parent="1">
+          <mxGeometry x="74" y="1446" width="50" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- Controller chip -->
+        <mxCell id="leg-ctrl" value="@RestController"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1FAE5;strokeColor=#059669;strokeWidth=1.5;fontSize=9;fontColor=#064E3B;"
+          vertex="1" parent="1">
+          <mxGeometry x="130" y="1466" width="120" height="28" as="geometry" />
+        </mxCell>
+        <!-- Service chip -->
+        <mxCell id="leg-svc" value="@Service"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;fontSize=9;fontColor=#78350F;"
+          vertex="1" parent="1">
+          <mxGeometry x="266" y="1466" width="120" height="28" as="geometry" />
+        </mxCell>
+        <!-- Component chip -->
+        <mxCell id="leg-comp" value="@Component"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=9;fontColor=#1E40AF;"
+          vertex="1" parent="1">
+          <mxGeometry x="402" y="1466" width="120" height="28" as="geometry" />
+        </mxCell>
+        <!-- Repository chip -->
+        <mxCell id="leg-repo" value="@Repository"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#7C3AED;strokeWidth=1.5;fontSize=9;fontColor=#4C1D95;"
+          vertex="1" parent="1">
+          <mxGeometry x="538" y="1466" width="120" height="28" as="geometry" />
+        </mxCell>
+        <!-- Output chip -->
+        <mxCell id="leg-out" value="Data Output"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;strokeWidth=1.5;fontSize=9;fontColor=#065F46;"
+          vertex="1" parent="1">
+          <mxGeometry x="674" y="1466" width="120" height="28" as="geometry" />
+        </mxCell>
+        <!-- AWS chip -->
+        <mxCell id="leg-aws" value="AWS / External"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;strokeWidth=1.5;fontSize=9;fontColor=#4C1D95;"
+          vertex="1" parent="1">
+          <mxGeometry x="810" y="1466" width="120" height="28" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

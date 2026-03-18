@@ -1,0 +1,245 @@
+<mxfile host="65bd71144e">
+    <diagram id="rag-eval-metrics" name="RAG Evaluation Metrics">
+        <mxGraphModel dx="2000" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+
+                <!-- ========== TITLE ========== -->
+                <mxCell id="title" value="RAG 效果评估体系" style="text;html=1;fontSize=16;fontStyle=1;fontColor=#333333;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="25" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="subtitle" value="9.1 评估指标体系" style="text;html=1;fontSize=11;fontColor=#888888;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="55" width="240" height="20" as="geometry"/>
+                </mxCell>
+
+                <!-- ========== SECTION 1: 检索效果指标 ========== -->
+                <mxCell id="s1_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=4;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="100" width="1080" height="310" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="s1_label" value="① 检索效果指标" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="110" width="200" height="24" as="geometry"/>
+                </mxCell>
+
+                <!-- Row 1 -->
+                <mxCell id="m_precision" value="准确率 Precision" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="150" width="170" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_precision_desc" value="相关文档数&#xa;───────────&#xa;检索出的总文档数" style="text;html=1;fontSize=10;fontColor=#555555;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="85" y="185" width="160" height="55" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_recall" value="召回率 Recall" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="150" width="170" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_recall_desc" value="检索出的相关文档&#xa;───────────&#xa;总相关文档数" style="text;html=1;fontSize=10;fontColor=#555555;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="275" y="185" width="160" height="55" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_mrr" value="MRR" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="150" width="170" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_mrr_desc" value="第一个相关文档&#xa;排名的倒数" style="text;html=1;fontSize=10;fontColor=#555555;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="465" y="190" width="160" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- Row 2 -->
+                <mxCell id="m_ndcg" value="NDCG@K" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="270" width="170" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_ndcg_desc" value="考虑位置的&#xa;加权评分" style="text;html=1;fontSize=10;fontColor=#555555;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="85" y="310" width="160" height="40" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_hitrate" value="Hit Rate@K" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="270" width="170" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_hitrate_desc" value="Top-K 中是否&#xa;包含相关文档" style="text;html=1;fontSize=10;fontColor=#555555;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="275" y="310" width="160" height="40" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_latency" value="Latency" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="270" width="170" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_latency_desc" value="检索响应时间" style="text;html=1;fontSize=10;fontColor=#555555;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="465" y="315" width="160" height="25" as="geometry"/>
+                </mxCell>
+
+                <!-- Section 1 icon/badge -->
+                <mxCell id="s1_icon" value="🔍" style="text;html=1;fontSize=20;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="1080" y="200" width="40" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- ========== CONNECTING ARROW S1 → S2 ========== -->
+                <mxCell id="e_s1_s2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="s1_bg" target="s2_bg" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ========== SECTION 2: 生成效果指标 ========== -->
+                <mxCell id="s2_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=4;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="450" width="1080" height="195" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="s2_label" value="② 生成效果指标" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="460" width="200" height="24" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_bleu" value="BLEU Score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#FF9800;fontColor=#BF360C;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="500" width="170" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_bleu_desc" value="N-gram 精确匹配&#xa;与参考答案对比" style="text;html=1;fontSize=10;fontColor=#5D4037;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="85" y="545" width="160" height="40" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_rouge" value="ROUGE Score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#FF9800;fontColor=#BF360C;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="500" width="170" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_rouge_desc" value="最长公共子序列&#xa;与参考答案对比" style="text;html=1;fontSize=10;fontColor=#5D4037;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="275" y="545" width="160" height="40" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_human" value="人工评估" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#FF9800;fontColor=#BF360C;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="500" width="170" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_human_desc" value="• 准确性&#xa;• 相关性&#xa;• 可读性&#xa;• 完整性" style="text;html=1;fontSize=10;fontColor=#5D4037;fontFamily=Inter;align=left;spacingLeft=20;" parent="1" vertex="1">
+                    <mxGeometry x="465" y="535" width="160" height="65" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="s2_icon" value="✍️" style="text;html=1;fontSize=20;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="1080" y="530" width="40" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- ========== CONNECTING ARROW S2 → S3 ========== -->
+                <mxCell id="e_s2_s3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="s2_bg" target="s3_bg" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ========== SECTION 3: 端到端效果指标 ========== -->
+                <mxCell id="s3_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=4;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="685" width="1080" height="195" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="s3_label" value="③ 端到端效果指标" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#1A73E8;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="695" width="200" height="24" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_answer_acc" value="答案准确率" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#43A047;fontColor=#1B5E20;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="735" width="170" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_answer_acc_desc" value="答案正确的问题&#xa;───────────&#xa;总问题数" style="text;html=1;fontSize=10;fontColor=#2E7D32;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="85" y="770" width="160" height="55" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_source_acc" value="溯源准确率" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#43A047;fontColor=#1B5E20;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="735" width="170" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_source_acc_desc" value="引用正确的&#xa;文档占比" style="text;html=1;fontSize=10;fontColor=#2E7D32;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="275" y="780" width="160" height="40" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="m_satisfaction" value="用户满意度" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#43A047;fontColor=#1B5E20;fontSize=11;fontStyle=1;fontFamily=Inter;arcSize=20;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="735" width="170" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_satisfaction_desc" value="评分 ≥ 4 分的&#xa;问答占比" style="text;html=1;fontSize=10;fontColor=#2E7D32;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="465" y="780" width="160" height="40" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="s3_icon" value="🎯" style="text;html=1;fontSize=20;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="1080" y="765" width="40" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- ========== RIGHT SIDE: SUMMARY FLOW ========== -->
+                <mxCell id="flow_title" value="评估层级" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#333333;fontFamily=Inter;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="770" y="115" width="80" height="20" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="flow_retrieval" value="Retrieval&#xa;检索层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;fontColor=#1A237E;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="760" y="145" width="110" height="40" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e_flow_1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="flow_retrieval" target="flow_generation" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="flow_generation" value="Generation&#xa;生成层" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#FF9800;fontColor=#BF360C;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="760" y="215" width="110" height="40" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e_flow_2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;html=1;strokeColor=#999999;strokeWidth=1.5;endArrow=blockThin;endFill=1;" parent="1" source="flow_generation" target="flow_e2e" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="flow_e2e" value="End-to-End&#xa;端到端" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#43A047;fontColor=#1B5E20;fontSize=10;fontStyle=1;fontFamily=Inter;arcSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="760" y="285" width="110" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- Bracket annotation -->
+                <mxCell id="bracket_line_top" style="endArrow=none;html=1;strokeColor=#CCCCCC;strokeWidth=1.5;rounded=1;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="890" y="155" as="sourcePoint"/>
+                        <mxPoint x="920" y="155" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="bracket_line_mid" style="endArrow=none;html=1;strokeColor=#CCCCCC;strokeWidth=1.5;rounded=1;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="920" y="155" as="sourcePoint"/>
+                        <mxPoint x="920" y="315" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="bracket_line_bot" style="endArrow=none;html=1;strokeColor=#CCCCCC;strokeWidth=1.5;rounded=1;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="890" y="315" as="sourcePoint"/>
+                        <mxPoint x="920" y="315" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="bracket_arrow" style="endArrow=blockThin;html=1;strokeColor=#CCCCCC;strokeWidth=1.5;endFill=1;rounded=1;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="920" y="235" as="sourcePoint"/>
+                        <mxPoint x="960" y="235" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="bracket_text" value="逐层递进&#xa;由局部到全局" style="text;html=1;fontSize=9;fontColor=#888888;fontFamily=Inter;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="965" y="222" width="100" height="30" as="geometry"/>
+                </mxCell>
+
+                <!-- ========== LEGEND ========== -->
+                <mxCell id="legend_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#E0E0E0;arcSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="920" width="580" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_title" value="图例" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#333333;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="75" y="925" width="40" height="20" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6DAFC;strokeColor=#4285F4;arcSize=30;" parent="1" vertex="1">
+                    <mxGeometry x="75" y="950" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg1t" value="检索指标" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="947" width="80" height="20" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="leg2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#FF9800;arcSize=30;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="950" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg2t" value="生成指标" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="225" y="947" width="80" height="20" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="leg3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#43A047;arcSize=30;" parent="1" vertex="1">
+                    <mxGeometry x="325" y="950" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg3t" value="端到端指标" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="350" y="947" width="90" height="20" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="leg4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=30;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="950" width="20" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg4t" value="指标分组" style="text;html=1;fontSize=10;fontColor=#666666;fontFamily=Inter;" parent="1" vertex="1">
+                    <mxGeometry x="485" y="947" width="80" height="20" as="geometry"/>
+                </mxCell>
+
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
