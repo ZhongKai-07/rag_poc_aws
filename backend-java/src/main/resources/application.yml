@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: rag-backend-java
+  profiles:
+    default: local
+
+server:
+  port: 8001
