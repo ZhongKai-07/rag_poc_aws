@@ -15,7 +15,7 @@ Current milestone status:
 - Task 9: completed
 - Task 10: completed
 - Task 11: completed
-- Task 12: next
+- Task 12: completed except exact-port smoke verification
 
 The Java backend is partially built but not yet ready for full local service startup against the frontend.
 
@@ -59,6 +59,12 @@ The Java backend is partially built but not yet ready for full local service sta
 9. Complete the main runtime bean graph in Task 11
    - Reason: once controllers and application services were real, the test-profile startup path still needed concrete beans for storage, persistence adapters, parser wiring, and OpenSearch chunk writing.
 
+10. Lock Python-compatible Task 12 regressions in tests
+   - Reason: rerank-empty fallback behavior and duplicate-upload skip behavior were still implicit in the Python baseline and needed executable guards before cutover.
+
+11. Exclude Spring AI Bedrock auto-config from the `test` profile only
+   - Reason: the full Maven suite was instantiating extra Bedrock event loops unrelated to the layered adapters, which blocked local test execution on `2026-03-19`.
+
 ## Run And Demo Commands
 
 Current milestone verification commands:
@@ -85,6 +91,9 @@ Current milestone verification commands:
   - `mvn -f backend-java/pom.xml -q "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" "-Dspring.profiles.active=test" "-Dtest=ApiLayerIntegrationTest,RagControllerContractTest,UploadControllerContractTest,QuestionControllerContractTest,RagQueryApplicationServiceTest,DocumentIngestionApplicationServiceTest,BdaResultMapperTest" test`
 - Storage and observability:
   - `mvn -f backend-java/pom.xml -q "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" "-Dspring.profiles.active=test" "-Dtest=RequestCorrelationFilterTest,ApiLayerIntegrationTest,RagControllerContractTest,UploadControllerContractTest,QuestionControllerContractTest,RagQueryApplicationServiceTest,DocumentIngestionApplicationServiceTest,BdaResultMapperTest" test`
+- Regression and cutover readiness:
+  - `mvn -f backend-java/pom.xml -q "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" "-Dspring.profiles.active=test" "-Dtest=RagRegressionTest,IngestionRegressionTest" test`
+  - `mvn -f backend-java/pom.xml "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" test`
 
 Future local service run command after wiring milestones are complete:
 
@@ -93,25 +102,23 @@ Future local service run command after wiring milestones are complete:
 
 ## Known Gaps
 
-- Full local backend startup for frontend use is not ready yet.
-- Regression suite and cutover checklist are not finished yet.
+- Exact Java smoke validation on `http://localhost:8001/health` is still pending in this workspace because `python.exe` PID `42828` was already listening on port `8001` on `2026-03-19`.
+- Representative external baseline PDFs are still intentionally not committed under `backend-java/src/test/resources/fixtures/regression/documents/`, so binary-level ingestion parity beyond the filename/question fixtures still depends on operator-supplied files during cutover rehearsal.
 
 ## Known Warnings
 
 - Spring AI Bedrock auto-configuration emits an AWS region warning in some tests.
 - This warning has not blocked current milestone tests, but runtime configuration still needs proper AWS environment setup for real execution.
 - In this shell environment, Maven may need `-Dmaven.repo.local=$env:USERPROFILE\.m2\repository` when new plugins or dependencies must be resolved.
+- A `curl http://localhost:8001/health` response was observed on `2026-03-19`, but it came from the already-running Python baseline listener, not from a freshly started Java smoke process.
 
 ## Next Recommended Step
 
-Continue with Task 11:
+Finish Task 12 closeout:
 
-- add `RagRegressionTest`
-- add `IngestionRegressionTest`
-- add the migration cutover checklist
-- run the full suite and smoke verification where the environment allows
-- run the milestone verification
-- commit only Task 12 files
+- stop or relocate the existing Python listener on port `8001`
+- rerun exact-port Java smoke on `8001`
+- rehearse frontend cutover using the new checklist
 
 ## Maintenance Rule
 

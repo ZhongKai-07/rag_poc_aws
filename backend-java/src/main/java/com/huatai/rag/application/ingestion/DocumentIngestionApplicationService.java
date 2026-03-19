@@ -65,6 +65,17 @@ public interface DocumentIngestionApplicationService {
 
         @Override
         public IngestionResult handle(IngestionCommand command) {
+            DocumentFileRecord existingRecord = documentRegistryPort.findByFilename(command.filename())
+                    .filter(record -> record.status() == IngestionStatus.COMPLETED)
+                    .orElse(null);
+            if (existingRecord != null) {
+                return new IngestionResult(
+                        "success",
+                        "Files processed successfully",
+                        existingRecord.indexName(),
+                        existingRecord.storagePath());
+            }
+
             String indexName = IndexNamingPolicy.indexNameFor(command.filename());
             StoredDocument storedDocument = documentStorage.store(command.filename(), command.content(), command.directoryPath());
             DocumentFileRecord processingDocument = documentRegistryPort.saveDocument(new DocumentFileRecord(

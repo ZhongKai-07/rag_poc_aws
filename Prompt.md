@@ -91,7 +91,8 @@ Completed:
 - Task 9: application orchestration
 - Task 10: real API wiring
 - Task 11: storage and observability
+- Task 12: regression coverage and cutover checklist
 
 Active next step:
 
-- Task 12: regression and cutover readiness
+- Exact Java smoke on port `8001` still requires a clean handoff window because the Python baseline process was already listening on that port during Task 12 verification on `2026-03-19`.

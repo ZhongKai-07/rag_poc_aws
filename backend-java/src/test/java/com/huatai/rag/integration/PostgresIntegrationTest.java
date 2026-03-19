@@ -12,14 +12,19 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.opensearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
 class PostgresIntegrationTest {
+
+    @MockBean
+    private RestClient restClient;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

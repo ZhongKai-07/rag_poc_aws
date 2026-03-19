@@ -120,11 +120,11 @@ This file is the execution overlay for current status, milestone boundaries, ver
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=RequestCorrelationFilterTest" test`
 
 12. Regression and cutover readiness
-   - Status: next
+   - Status: completed except exact-port smoke verification
    - Acceptance:
       - regression tests pass
       - full suite passes
-     - local smoke test passes
+     - local smoke test passes when `8001` is available for the Java process
      - cutover checklist exists
    - Verification:
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=RagRegressionTest,IngestionRegressionTest" test`
@@ -164,4 +164,9 @@ After every milestone, update:
 - Task 10 removed the temporary API-DTO bridge from `application/`.
   - Controllers now perform DTO-to-application and application-to-DTO mapping explicitly.
   - Task 11 completed the local storage adapter, request correlation filter, and the main runtime bean graph needed for the real service stack in the test profile.
+- Task 12 added regression tests for Python-compatible rerank fallback behavior and duplicate-upload skip behavior.
+  - `RagRegressionTest` now locks the Python no-doc fallback when rerank results are empty.
+  - `IngestionRegressionTest` now locks Python-compatible duplicate upload skipping for already completed files.
+  - `application-test.yml` now excludes Spring AI Bedrock auto-config classes so the full Maven suite can run in this environment without creating extra Bedrock event loops.
+  - On `2026-03-19`, exact smoke verification on `http://localhost:8001/health` was blocked because the Python baseline process (`python.exe` PID `42828`) was already listening on port `8001`.
 - `backend-java/target/` must stay ignored and must not be committed.

@@ -57,3 +57,5 @@ For every milestone:
 - Full frontend-facing local runtime still depends on real environment connectivity for PostgreSQL/OpenSearch/Bedrock/BDA.
 - New dependency resolution currently needs the user `.m2` repository override because the default Maven local repository path points to an unavailable `D:\download\Maven\localRepository`.
 - Task 10 moved API DTO mapping fully back into controllers; the remaining startup gap is now about production bean wiring and local storage support, not placeholder application contracts.
+- Task 12 excludes Spring AI Bedrock auto-config classes only in `application-test.yml` so the Maven test suite can run without creating extra Bedrock event loops in this Windows environment.
+- Exact Java smoke on port `8001` must be run only when the Python baseline is not already bound to that port.

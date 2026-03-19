@@ -13,6 +13,9 @@ import java.util.Objects;
 
 public interface RagQueryApplicationService {
 
+    String NO_DOCS_FALLBACK =
+            "\u62b1\u6b49\uff0c\u6211\u65e0\u6cd5\u627e\u5230\u76f8\u5173\u4fe1\u606f\u6765\u56de\u7b54\u60a8\u7684\u95ee\u9898\u3002";
+
     QueryResult handle(QueryCommand command);
 
     record QueryCommand(
@@ -80,6 +83,18 @@ public interface RagQueryApplicationService {
                     command.query(),
                     retrievalResult.rerankDocuments(),
                     command.rerankScoreThreshold());
+
+            if (rerankedDocuments.isEmpty()) {
+                for (String indexName : command.indexNames()) {
+                    questionHistoryPort.recordQuestion(indexName, command.query());
+                }
+                return new QueryResult(
+                        NO_DOCS_FALLBACK,
+                        List.of(),
+                        retrievalResult.recallDocuments(),
+                        List.of());
+            }
+
             List<RetrievedDocument> sourceDocuments = contextAssemblyService.selectSourceDocuments(
                     retrievalResult,
                     rerankedDocuments);
