@@ -3,6 +3,28 @@ spring:
     name: rag-backend-java
   profiles:
     default: local
+  jpa:
+    open-in-view: false
+
+huatai:
+  aws:
+    region: ${AWS_DEFAULT_REGION:ap-northeast-1}
+    bedrock-region: ${BEDROCK_REGION:${AWS_DEFAULT_REGION:ap-northeast-1}}
+  opensearch:
+    endpoint: ${OPENSEARCH_ENDPOINT:https://localhost:9200}
+    username: ${OPENSEARCH_USERNAME:admin}
+    password: ${OPENSEARCH_PASSWORD:admin}
+    connect-timeout: 5s
+    socket-timeout: 30s
+  storage:
+    document-root: ${DOCUMENT_ROOT:./documents}
+  rag:
+    vec-score-threshold: ${RAG_VEC_SCORE_THRESHOLD:0.0}
+    text-score-threshold: ${RAG_TEXT_SCORE_THRESHOLD:0.0}
+    rerank-score-threshold: ${RAG_RERANK_SCORE_THRESHOLD:0.5}
+    request-timeout: ${RAG_REQUEST_TIMEOUT:30s}
+    retry-max-attempts: ${RAG_RETRY_MAX_ATTEMPTS:3}
+    retry-backoff: ${RAG_RETRY_BACKOFF:1s}
 
 server:
   port: 8001

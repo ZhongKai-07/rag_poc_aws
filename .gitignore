@@ -22,3 +22,6 @@ api/documents/
 api/question_history/
 logs/
 
+# Maven build output
+backend-java/target/
+
