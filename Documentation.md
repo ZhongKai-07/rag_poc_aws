@@ -12,7 +12,8 @@ Current milestone status:
 - Task 6: completed
 - Task 7: completed
 - Task 8: completed
-- Task 9: next
+- Task 9: completed
+- Task 10: next
 
 The Java backend is partially built but not yet ready for full local service startup against the frontend.
 
@@ -50,6 +51,10 @@ The Java backend is partially built but not yet ready for full local service sta
 7. Use the user `.m2` repository override when resolving new Maven artifacts locally
    - Reason: the default Maven local repository setting in this environment points to an unavailable `D:\download\Maven\localRepository`, while `C:\Users\zhong kai\.m2\repository` works.
 
+8. Keep temporary API-facing bridge methods on the Task 9 application service interfaces
+   - Reason: this lets Task 9 land real orchestration without breaking the already-completed Task 4 controller contract tests.
+   - Removal plan: Task 10 will rewire controllers to application-native request/result models and delete the bridge shape.
+
 ## Run And Demo Commands
 
 Current milestone verification commands:
@@ -68,6 +73,10 @@ Current milestone verification commands:
   - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=PromptTemplateFactoryTest,BedrockAdapterWiringTest" test`
 - BDA parsing:
   - `mvn -f backend-java/pom.xml -q "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" "-Dspring.profiles.active=test" "-Dtest=BdaResultMapperTest" test`
+- Application orchestration:
+  - `mvn -f backend-java/pom.xml -q "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" "-Dspring.profiles.active=test" "-Dtest=RagQueryApplicationServiceTest,DocumentIngestionApplicationServiceTest" test`
+- Application-safe regression for completed milestones touched by Task 9:
+  - `mvn -f backend-java/pom.xml -q "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" "-Dspring.profiles.active=test" "-Dtest=RagControllerContractTest,UploadControllerContractTest,QuestionControllerContractTest,BdaResultMapperTest" test`
 
 Future local service run command after wiring milestones are complete:
 
@@ -76,7 +85,6 @@ Future local service run command after wiring milestones are complete:
 
 ## Known Gaps
 
-- Real `application` orchestration not implemented yet.
 - Controllers are not yet wired to real service implementations.
 - Full local backend startup for frontend use is not ready yet.
 - Regression suite and cutover checklist are not finished yet.
@@ -91,13 +99,12 @@ Future local service run command after wiring milestones are complete:
 
 Continue with Task 9:
 
-- add `RagQueryApplicationServiceTest`
-- add `DocumentIngestionApplicationServiceTest`
-- implement `RagQueryApplicationService`
-- implement `DocumentIngestionApplicationService`
-- implement registry and history application services
+- add `ApiLayerIntegrationTest`
+- rewire controllers to application-native request/result models
+- remove the temporary API-DTO bridge from application services
+- add frontend-safe exception mapping for application failures
 - run the milestone verification
-- commit only Task 9 files
+- commit only Task 10 files
 
 ## Maintenance Rule
 

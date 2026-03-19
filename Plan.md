@@ -94,7 +94,7 @@ This file is the execution overlay for current status, milestone boundaries, ver
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=BdaResultMapperTest" test`
 
 9. Application orchestration
-   - Status: next
+   - Status: completed
    - Acceptance:
      - ingestion/query/history/registry flows implemented in `application/`
      - orchestration tests pass
@@ -102,7 +102,7 @@ This file is the execution overlay for current status, milestone boundaries, ver
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=RagQueryApplicationServiceTest,DocumentIngestionApplicationServiceTest" test`
 
 10. Real API wiring
-   - Status: pending
+   - Status: next
    - Acceptance:
      - controllers use real application services
      - placeholder wiring removed
@@ -163,5 +163,6 @@ After every milestone, update:
 - When Maven needs to resolve newly added plugins or dependencies in this environment, use `-Dmaven.repo.local=$env:USERPROFILE\.m2\repository` because the default local repository setting points at an unavailable `D:\download\Maven\localRepository`.
 - API controllers currently depend on placeholder `application` interfaces.
   - This is intentional and temporary.
-  - Real orchestration wiring is scheduled for Task 9 and Task 10.
+  - Task 9 introduced real orchestration behind the same service entry points.
+  - Task 10 will finish the cutover by removing API-DTO bridging from those application interfaces and remapping controllers onto application-native request/result models.
 - `backend-java/target/` must stay ignored and must not be committed.

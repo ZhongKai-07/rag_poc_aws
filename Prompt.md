@@ -88,7 +88,8 @@ Completed:
 - Task 6: OpenSearch adapters
 - Task 7: Bedrock adapters
 - Task 8: BDA parsing and normalization
+- Task 9: application orchestration
 
 Active next step:
 
-- Task 9: application orchestration
+- Task 10: real API wiring
