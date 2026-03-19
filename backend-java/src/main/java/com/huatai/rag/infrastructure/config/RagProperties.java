@@ -12,6 +12,9 @@ public class RagProperties {
     private Duration requestTimeout = Duration.ofSeconds(30);
     private int retryMaxAttempts = 3;
     private Duration retryBackoff = Duration.ofSeconds(1);
+    private String embeddingModelId = "amazon.titan-embed-text-v1";
+    private String rerankModelId = "cohere.rerank-v3-5:0";
+    private String answerModelId = "anthropic.claude-3-5-sonnet-20241022-v2:0";
 
     public double getVecScoreThreshold() {
         return vecScoreThreshold;
@@ -59,5 +62,29 @@ public class RagProperties {
 
     public void setRetryBackoff(Duration retryBackoff) {
         this.retryBackoff = retryBackoff;
+    }
+
+    public String getEmbeddingModelId() {
+        return embeddingModelId;
+    }
+
+    public void setEmbeddingModelId(String embeddingModelId) {
+        this.embeddingModelId = embeddingModelId;
+    }
+
+    public String getRerankModelId() {
+        return rerankModelId;
+    }
+
+    public void setRerankModelId(String rerankModelId) {
+        this.rerankModelId = rerankModelId;
+    }
+
+    public String getAnswerModelId() {
+        return answerModelId;
+    }
+
+    public void setAnswerModelId(String answerModelId) {
+        this.answerModelId = answerModelId;
     }
 }
