@@ -90,7 +90,8 @@ Completed:
 - Task 8: BDA parsing and normalization
 - Task 9: application orchestration
 - Task 10: real API wiring
+- Task 11: storage and observability
 
 Active next step:
 
-- Task 11: storage and observability
+- Task 12: regression and cutover readiness

@@ -21,6 +21,17 @@ public interface QuestionHistoryJpaRepository extends JpaRepository<QuestionHist
             @Param("indexName") String indexName,
             org.springframework.data.domain.Pageable pageable);
 
+    @Query("""
+            select q.question as question, count(q) as total
+            from QuestionHistoryEntity q
+            where q.indexName in :indexNames
+            group by q.question
+            order by count(q) desc, q.question asc
+            """)
+    List<QuestionCountView> findTopQuestionsByIndexNames(
+            @Param("indexNames") List<String> indexNames,
+            org.springframework.data.domain.Pageable pageable);
+
     default List<QuestionCountView> findTop5ByIndexNameGroupByQuestionOrderByCountDesc(String indexName) {
         return findTopQuestionsByIndexName(indexName, PageRequest.of(0, 5));
     }

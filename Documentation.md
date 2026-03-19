@@ -14,7 +14,8 @@ Current milestone status:
 - Task 8: completed
 - Task 9: completed
 - Task 10: completed
-- Task 11: next
+- Task 11: completed
+- Task 12: next
 
 The Java backend is partially built but not yet ready for full local service startup against the frontend.
 
@@ -55,6 +56,9 @@ The Java backend is partially built but not yet ready for full local service sta
 8. Move DTO mapping back into controllers in Task 10
    - Reason: this restores the intended boundary where `application/` exposes native request/result models and `api/` owns HTTP contract mapping.
 
+9. Complete the main runtime bean graph in Task 11
+   - Reason: once controllers and application services were real, the test-profile startup path still needed concrete beans for storage, persistence adapters, parser wiring, and OpenSearch chunk writing.
+
 ## Run And Demo Commands
 
 Current milestone verification commands:
@@ -79,6 +83,8 @@ Current milestone verification commands:
   - `mvn -f backend-java/pom.xml -q "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" "-Dspring.profiles.active=test" "-Dtest=RagControllerContractTest,UploadControllerContractTest,QuestionControllerContractTest,BdaResultMapperTest" test`
 - API integration:
   - `mvn -f backend-java/pom.xml -q "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" "-Dspring.profiles.active=test" "-Dtest=ApiLayerIntegrationTest,RagControllerContractTest,UploadControllerContractTest,QuestionControllerContractTest,RagQueryApplicationServiceTest,DocumentIngestionApplicationServiceTest,BdaResultMapperTest" test`
+- Storage and observability:
+  - `mvn -f backend-java/pom.xml -q "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" "-Dspring.profiles.active=test" "-Dtest=RequestCorrelationFilterTest,ApiLayerIntegrationTest,RagControllerContractTest,UploadControllerContractTest,QuestionControllerContractTest,RagQueryApplicationServiceTest,DocumentIngestionApplicationServiceTest,BdaResultMapperTest" test`
 
 Future local service run command after wiring milestones are complete:
 
@@ -87,7 +93,6 @@ Future local service run command after wiring milestones are complete:
 
 ## Known Gaps
 
-- Production bean wiring for the real application-service graph is not in the main runtime context yet.
 - Full local backend startup for frontend use is not ready yet.
 - Regression suite and cutover checklist are not finished yet.
 
@@ -101,13 +106,12 @@ Future local service run command after wiring milestones are complete:
 
 Continue with Task 11:
 
-- add `LocalFileStorageAdapter`
-- add `RequestCorrelationFilter`
-- add `RequestCorrelationFilterTest`
-- wire remaining production startup beans needed for local runtime
-- update `backend-java/README.md`
+- add `RagRegressionTest`
+- add `IngestionRegressionTest`
+- add the migration cutover checklist
+- run the full suite and smoke verification where the environment allows
 - run the milestone verification
-- commit only Task 11 files
+- commit only Task 12 files
 
 ## Maintenance Rule
 

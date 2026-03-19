@@ -15,10 +15,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient.Builder;
+import software.amazon.awssdk.services.bedrockdataautomationruntime.BedrockDataAutomationRuntimeClient;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.bedrockagentruntime.BedrockAgentRuntimeClient;
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient;
+import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
 @EnableConfigurationProperties({
@@ -49,6 +51,26 @@ public class ClientConfig {
             AwsProperties awsProperties,
             DefaultCredentialsProvider credentialsProvider) {
         return BedrockAgentRuntimeClient.builder()
+                .region(Region.of(awsProperties.getRegion()))
+                .credentialsProvider(credentialsProvider)
+                .build();
+    }
+
+    @Bean
+    public BedrockDataAutomationRuntimeClient bedrockDataAutomationRuntimeClient(
+            AwsProperties awsProperties,
+            DefaultCredentialsProvider credentialsProvider) {
+        return BedrockDataAutomationRuntimeClient.builder()
+                .region(Region.of(awsProperties.getBedrockRegion()))
+                .credentialsProvider(credentialsProvider)
+                .build();
+    }
+
+    @Bean
+    public S3Client s3Client(
+            AwsProperties awsProperties,
+            DefaultCredentialsProvider credentialsProvider) {
+        return S3Client.builder()
                 .region(Region.of(awsProperties.getRegion()))
                 .credentialsProvider(credentialsProvider)
                 .build();

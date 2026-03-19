@@ -111,19 +111,19 @@ This file is the execution overlay for current status, milestone boundaries, ver
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=ApiLayerIntegrationTest" test`
 
 11. Storage and observability
-   - Status: next
+   - Status: completed
    - Acceptance:
-     - local file storage adapter exists
-     - request correlation support exists
-     - README updated
+      - local file storage adapter exists
+      - request correlation support exists
+      - README updated
    - Verification:
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=RequestCorrelationFilterTest" test`
 
 12. Regression and cutover readiness
-   - Status: pending
+   - Status: next
    - Acceptance:
-     - regression tests pass
-     - full suite passes
+      - regression tests pass
+      - full suite passes
      - local smoke test passes
      - cutover checklist exists
    - Verification:
@@ -163,5 +163,5 @@ After every milestone, update:
 - When Maven needs to resolve newly added plugins or dependencies in this environment, use `-Dmaven.repo.local=$env:USERPROFILE\.m2\repository` because the default local repository setting points at an unavailable `D:\download\Maven\localRepository`.
 - Task 10 removed the temporary API-DTO bridge from `application/`.
   - Controllers now perform DTO-to-application and application-to-DTO mapping explicitly.
-  - Full production bean wiring and local storage support are still pending Task 11.
+  - Task 11 completed the local storage adapter, request correlation filter, and the main runtime bean graph needed for the real service stack in the test profile.
 - `backend-java/target/` must stay ignored and must not be committed.

@@ -53,6 +53,7 @@ For every milestone:
 
 - Current Java target is temporarily `17`.
 - Current local test profile does not require a manually configured PostgreSQL instance.
-- The Java backend is not considered runnable for frontend use until real application-service wiring is complete.
+- The Java backend test profile now has a complete Spring bean graph for API/application/domain/infrastructure wiring.
+- Full frontend-facing local runtime still depends on real environment connectivity for PostgreSQL/OpenSearch/Bedrock/BDA.
 - New dependency resolution currently needs the user `.m2` repository override because the default Maven local repository path points to an unavailable `D:\download\Maven\localRepository`.
 - Task 10 moved API DTO mapping fully back into controllers; the remaining startup gap is now about production bean wiring and local storage support, not placeholder application contracts.

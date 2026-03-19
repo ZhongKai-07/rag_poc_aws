@@ -10,6 +10,11 @@ huatai:
   aws:
     region: ${AWS_DEFAULT_REGION:ap-northeast-1}
     bedrock-region: ${BEDROCK_REGION:${AWS_DEFAULT_REGION:ap-northeast-1}}
+    bda-project-arn: ${BDA_PROJECT_ARN:}
+    bda-profile-arn: ${BDA_PROFILE_ARN:}
+    bda-stage: ${BDA_STAGE:LIVE}
+    bda-max-poll-attempts: ${BDA_MAX_POLL_ATTEMPTS:60}
+    bda-poll-interval: ${BDA_POLL_INTERVAL:2s}
   opensearch:
     endpoint: ${OPENSEARCH_ENDPOINT:https://localhost:9200}
     username: ${OPENSEARCH_USERNAME:admin}
