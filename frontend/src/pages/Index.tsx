@@ -1,73 +1,112 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, MessageSquare, FileSearch } from "lucide-react";
+import { Upload, MessageSquare, FileSearch, ArrowRight, Sparkles } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="max-w-5xl w-full space-y-12">
-        <div className="text-center space-y-4">
-          <h1 className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Research Report QA System
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Powered by AI - Upload financial reports and get instant answers to your questions
-          </p>
+    <div className="flex flex-col items-center justify-center space-y-16 py-12">
+      {/* Hero Section */}
+      <div className="text-center space-y-6 max-w-3xl animate-fade-in-down">
+        <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary backdrop-blur-sm">
+          <Sparkles className="mr-2 h-4 w-4" />
+          <span>Next Gen AI Knowledge Base</span>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card
-            className="p-8 border-border bg-gradient-card shadow-glow cursor-pointer hover:scale-[1.02] transition-transform"
+        
+        <h1 className="text-6xl font-extrabold tracking-tight sm:text-7xl">
+          <span className="block text-foreground">Intelligent</span>
+          <span className="text-gradient block mt-2">Financial Analysis</span>
+        </h1>
+        
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          Upload financial reports and let our cosmic AI engine extract insights, answer queries, and visualize data in seconds.
+        </p>
+        
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+          <Button 
+            size="lg" 
+            className="rounded-full px-8 bg-primary hover:bg-primary/90 text-white shadow-glow hover:shadow-lg transition-all hover:-translate-y-1"
             onClick={() => navigate("/upload")}
           >
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Upload className="w-7 h-7 text-primary" />
-              </div>
-              <h2 className="text-2xl font-semibold text-foreground">Upload Reports</h2>
-              <p className="text-muted-foreground">
-                Upload and process PDF financial reports for AI-powered analysis
-              </p>
-              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                Start Uploading
-              </Button>
-            </div>
-          </Card>
-
-          <Card
-            className="p-8 border-border bg-gradient-card shadow-glow cursor-pointer hover:scale-[1.02] transition-transform"
+            Get Started <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="rounded-full px-8 border-primary/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm"
             onClick={() => navigate("/qa")}
           >
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="w-7 h-7 text-primary" />
-              </div>
-              <h2 className="text-2xl font-semibold text-foreground">Ask Questions</h2>
-              <p className="text-muted-foreground">
-                Query your uploaded reports and get AI-generated insights
-              </p>
-              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                Start Asking
-              </Button>
+            Try Demo
+          </Button>
+        </div>
+      </div>
+
+      {/* Feature Cards */}
+      <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl stagger-children">
+        <div 
+          className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 transition-all hover:border-primary/50 hover:shadow-glow cursor-pointer"
+          onClick={() => navigate("/upload")}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+          
+          <div className="relative space-y-4">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <Upload className="w-7 h-7 text-white" />
             </div>
-          </Card>
+            
+            <h2 className="text-2xl font-bold text-foreground">Upload Reports</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Drag & drop PDF financial reports. Our system automatically processes, chunks, and vectorizes your documents for instant retrieval.
+            </p>
+            
+            <div className="flex items-center text-primary font-medium pt-2">
+              Start Uploading <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </div>
+          </div>
         </div>
 
-        <Card className="p-6 border-primary/20 bg-card/50">
-          <div className="flex items-start gap-4">
-            <FileSearch className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
-            <div className="space-y-1">
-              <h3 className="font-semibold text-foreground">How it works</h3>
-              <p className="text-sm text-muted-foreground">
-                Upload your PDF financial reports, and our AI will process and analyze them. 
-                Then ask questions to get instant, accurate answers based on the document content.
+        <div 
+          className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 transition-all hover:border-secondary/50 hover:shadow-glow cursor-pointer"
+          onClick={() => navigate("/qa")}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+          
+          <div className="relative space-y-4">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-secondary to-teal-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <MessageSquare className="w-7 h-7 text-white" />
+            </div>
+            
+            <h2 className="text-2xl font-bold text-foreground">Ask Questions</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Interact with your data using natural language. Get citations, source highlights, and deep insights from multiple documents.
+            </p>
+            
+            <div className="flex items-center text-secondary font-medium pt-2">
+              Start Asking <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Info Section */}
+      <div className="w-full max-w-5xl animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md">
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-shrink-0 w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center animate-pulse-glow">
+              <FileSearch className="w-8 h-8 text-primary" />
+            </div>
+            <div className="space-y-2 text-center md:text-left">
+              <h3 className="text-xl font-semibold text-foreground">How it works</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Our RAG (Retrieval-Augmented Generation) engine combines the power of Large Language Models with your proprietary data. 
+                Upload your PDF reports, and we create a semantic index that allows the AI to find the exact information you need, 
+                reducing hallucinations and providing evidence-based answers.
               </p>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );

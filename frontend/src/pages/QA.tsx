@@ -12,9 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, ChevronUp, Loader2, MessageSquare, TrendingUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, MessageSquare, TrendingUp, Settings, FileText, Search, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 
 interface ProcessedFile {
   filename: string;
@@ -58,7 +57,6 @@ const QA = () => {
   const [showRerank, setShowRerank] = useState(false);
   const [topQuestions, setTopQuestions] = useState<TopQuestion[]>([]);
   const { toast } = useToast();
-  const navigate = useNavigate();
   const answerRef = useRef<HTMLDivElement>(null);
 
   const extractPhrases = (answer: string): string[] => {
@@ -131,7 +129,7 @@ const QA = () => {
         parts.forEach((part, i) => {
           if (highlightRegex.test(part)) {
             result.push(
-              <mark key={`${seg.idx}-${i}`} className="bg-yellow-400/30 text-foreground rounded px-0.5">
+              <mark key={`${seg.idx}-${i}`} className="bg-yellow-400/30 text-foreground rounded px-0.5 font-medium">
                 {part}
               </mark>
             );
@@ -290,278 +288,244 @@ const QA = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Research Report QA System
-          </h1>
-          <Button
-            onClick={() => navigate("/")}
-            variant="outline"
-            className="border-primary/30 hover:bg-primary/10"
-          >
-            Back to Upload
-          </Button>
-        </div>
-      </header>
+    <div className="flex flex-col space-y-8 animate-fade-in pb-12">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground">
+          Interactive Q&A
+        </h1>
+        <p className="text-muted-foreground text-lg">
+          Query your documents with precision and context.
+        </p>
+      </div>
 
-      <main className="container mx-auto px-6 py-12">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold text-foreground">Ask Questions</h2>
-            <p className="text-muted-foreground">Query your financial reports with AI</p>
-          </div>
-
-          <Card className="p-8 border-border bg-gradient-card shadow-glow">
-            <div className="space-y-6">
+      <div className="grid lg:grid-cols-[300px_1fr] gap-8 items-start max-w-7xl mx-auto w-full">
+        {/* Left Sidebar: Settings & Files */}
+        <div className="space-y-6">
+          <Card className="p-5 glass-card space-y-6">
+            <div className="flex items-center gap-2 font-semibold text-foreground">
+              <Settings className="w-5 h-5 text-primary" />
+              <span>Configuration</span>
+            </div>
+            
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-foreground">
-                  Select Documents
-                  {selectedFiles.length > 0 && (
-                    <span className="ml-2 text-sm text-muted-foreground font-normal">
-                      (已选 {selectedFiles.length} 个文档)
-                    </span>
-                  )}
-                </Label>
-                <div className="rounded-md border border-border bg-input p-3 max-h-[200px] overflow-y-auto space-y-2">
-                  {processedFiles.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No processed files available</p>
-                  ) : (
-                    processedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`file-${index}`}
-                          checked={selectedFiles.includes(file.filename)}
-                          onCheckedChange={() => toggleFileSelection(file.filename)}
-                        />
-                        <label
-                          htmlFor={`file-${index}`}
-                          className="text-sm text-foreground cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {file.filename}
-                        </label>
-                      </div>
-                    ))
-                  )}
-                </div>
+                <Label className="text-xs font-medium text-muted-foreground uppercase">Search Mode</Label>
+                <Select value={searchMode} onValueChange={setSearchMode}>
+                  <SelectTrigger className="bg-background/50 border-white/10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mix">Hybrid (Text + Vector)</SelectItem>
+                    <SelectItem value="vector">Vector Only</SelectItem>
+                    <SelectItem value="text">Keyword Only</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              {topQuestions.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-foreground flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-orange-400" />
-                    Hot Questions
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {topQuestions.map((item, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setQuestion(item.question)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm
-                          bg-orange-500/10 border border-orange-500/20 text-orange-300
-                          hover:bg-orange-500/20 hover:border-orange-500/40 transition-colors cursor-pointer"
-                      >
-                        <span className="truncate max-w-[300px]">{item.question}</span>
-                        <span className="text-xs text-orange-400/60 shrink-0">x{item.count}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <div className="space-y-2">
-                <Label htmlFor="question" className="text-foreground">Your Question</Label>
-                <Textarea
-                  id="question"
-                  placeholder="Enter your question about the financial report..."
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  className="min-h-[120px] bg-input border-border resize-none"
+                <Label className="text-xs font-medium text-muted-foreground uppercase">Similarity Threshold ({threshold})</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={threshold}
+                  onChange={(e) => setThreshold(e.target.value)}
+                  className="bg-background/50 border-white/10"
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="threshold" className="text-foreground">
-                    Similarity Threshold
-                  </Label>
-                  <Input
-                    id="threshold"
-                    type="number"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={threshold}
-                    onChange={(e) => setThreshold(e.target.value)}
-                    className="bg-input border-border"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="numDocs" className="text-foreground">
-                    Number of Related Docs
-                  </Label>
-                  <Input
-                    id="numDocs"
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={numDocs}
-                    onChange={(e) => setNumDocs(e.target.value)}
-                    className="bg-input border-border"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="searchMode" className="text-foreground">Search Mode</Label>
-                  <Select value={searchMode} onValueChange={setSearchMode}>
-                    <SelectTrigger id="searchMode" className="bg-input border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="mix">mix</SelectItem>
-                      <SelectItem value="vector">vector</SelectItem>
-                      <SelectItem value="text">text</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-muted-foreground uppercase">Docs to Retrieve ({numDocs})</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={numDocs}
+                  onChange={(e) => setNumDocs(e.target.value)}
+                  className="bg-background/50 border-white/10"
+                />
               </div>
-
-              <Button
-                onClick={handleAskQuestion}
-                disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Ask Question
-                  </>
-                )}
-              </Button>
             </div>
           </Card>
 
-          {response && (
-            <Card ref={answerRef} className="p-8 border-border bg-card space-y-6">
-              <div className="space-y-3">
-                <h3 className="text-xl font-semibold text-foreground">Answer</h3>
-                <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-                  {response.answer}
-                </p>
+          <Card className="p-5 glass-card space-y-4 h-[400px] flex flex-col">
+            <div className="flex items-center justify-between font-semibold text-foreground">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary" />
+                <span>Documents</span>
               </div>
+              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                {selectedFiles.length}
+              </span>
+            </div>
 
-              {/* Recall Results Section */}
-              <div className="space-y-3">
-                <Button
-                  onClick={() => setShowRecall(!showRecall)}
-                  variant="outline"
-                  className="w-full justify-between border-blue-500/30 hover:bg-blue-500/10"
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
-                    Recall Results ({response.recall_documents.length})
-                  </span>
-                  {showRecall ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </Button>
-
-                {showRecall && (
-                  <div className="space-y-4 mt-4">
-                    {response.recall_documents.map((doc, index) => (
-                      <Card key={index} className="p-4 bg-blue-500/5 border-blue-500/20">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-4">
-                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-blue-500/10 text-blue-400">
-                              #{index + 1}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-semibold text-blue-400">
-                                Similarity Score:
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                {doc.score.toFixed(4)}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                            {renderContentWithImages(doc.page_content)}
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
+            <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2">
+              {processedFiles.length === 0 ? (
+                <div className="text-sm text-muted-foreground text-center py-8">
+                  No files found. Please upload first.
+                </div>
+              ) : (
+                processedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                    <Checkbox
+                      id={`file-${index}`}
+                      checked={selectedFiles.includes(file.filename)}
+                      onCheckedChange={() => toggleFileSelection(file.filename)}
+                    />
+                    <label
+                      htmlFor={`file-${index}`}
+                      className="text-sm text-foreground cursor-pointer leading-tight line-clamp-2"
+                    >
+                      {file.filename}
+                    </label>
                   </div>
-                )}
-              </div>
+                ))
+              )}
+            </div>
+          </Card>
+        </div>
 
-              {/* Rerank Results Section */}
+        {/* Right Area: Chat */}
+        <div className="space-y-6">
+          <Card className="p-6 glass-card space-y-6">
+            {/* Hot Questions */}
+            {topQuestions.length > 0 && (
               <div className="space-y-3">
+                <Label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <TrendingUp className="w-4 h-4 text-accent" />
+                  Suggested Questions
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {topQuestions.map((item, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setQuestion(item.question)}
+                      className="text-xs px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-all cursor-pointer truncate max-w-[200px]"
+                    >
+                      {item.question}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Input Area */}
+            <div className="space-y-4">
+              <div className="relative">
+                <Textarea
+                  placeholder="Ask a question about your documents..."
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  className="min-h-[140px] p-4 bg-background/50 border-white/10 resize-none focus:ring-primary/50 text-lg shadow-inner"
+                />
                 <Button
-                  onClick={() => setShowRerank(!showRerank)}
-                  variant="outline"
-                  className="w-full justify-between border-green-500/30 hover:bg-green-500/10"
+                  onClick={handleAskQuestion}
+                  disabled={loading}
+                  className="absolute bottom-4 right-4 rounded-full bg-primary hover:bg-primary/90 text-white shadow-glow"
                 >
-                  <span className="flex items-center gap-2">
-                    <span className="inline-block w-2 h-2 rounded-full bg-green-500" />
-                    Rerank Results ({response.rerank_documents.length})
-                  </span>
-                  {showRerank ? (
-                    <ChevronUp className="w-4 h-4" />
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <ChevronDown className="w-4 h-4" />
+                    <div className="flex items-center gap-2">
+                      <span>Ask AI</span>
+                      <Sparkles className="w-4 h-4" />
+                    </div>
                   )}
                 </Button>
+              </div>
+            </div>
+          </Card>
 
-                {showRerank && (
-                  <div className="space-y-4 mt-4">
-                    {response.rerank_documents.map((doc, index) => (
-                      <Card key={index} className="p-4 bg-green-500/5 border-green-500/20">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-4">
-                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-green-500/10 text-green-400">
-                              #{index + 1}
+          {/* Response Area */}
+          {response && (
+            <div ref={answerRef} className="space-y-6 animate-fade-in-up">
+              <Card className="p-8 border-primary/20 bg-gradient-to-br from-background to-primary/5 shadow-glow relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-secondary" />
+                
+                <div className="space-y-4 relative z-10">
+                  <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    AI Analysis
+                  </h3>
+                  <div className="prose prose-invert max-w-none">
+                    <p className="text-foreground/90 leading-7 text-lg whitespace-pre-wrap">
+                      {response.answer}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Evidence Accordions */}
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Recall Results */}
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => setShowRecall(!showRecall)}
+                    variant="outline"
+                    className="w-full justify-between bg-background/40 border-white/10 hover:bg-white/5"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Search className="w-4 h-4 text-blue-400" />
+                      Recall Evidence ({response.recall_documents.length})
+                    </span>
+                    {showRecall ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+
+                  {showRecall && (
+                    <div className="space-y-3 animate-fade-in">
+                      {response.recall_documents.map((doc, index) => (
+                        <Card key={index} className="p-4 bg-blue-500/5 border-blue-500/20 text-sm">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-mono text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">
+                              Score: {doc.score.toFixed(3)}
                             </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-semibold text-green-400">
-                                Similarity Score:
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                {doc.score.toFixed(4)}
-                              </span>
-                            </div>
-                            {doc.rerank_score !== undefined && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-green-400">
-                                  Rerank Score:
-                                </span>
-                                <span className="text-sm text-muted-foreground">
-                                  {doc.rerank_score.toFixed(4)}
-                                </span>
-                              </div>
-                            )}
                           </div>
-                          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                          <p className="text-muted-foreground line-clamp-4 hover:line-clamp-none transition-all cursor-help">
+                            {renderContentWithImages(doc.page_content)}
+                          </p>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Rerank Results */}
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => setShowRerank(!showRerank)}
+                    variant="outline"
+                    className="w-full justify-between bg-background/40 border-white/10 hover:bg-white/5"
+                  >
+                    <span className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-green-400" />
+                      Rerank Evidence ({response.rerank_documents.length})
+                    </span>
+                    {showRerank ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+
+                  {showRerank && (
+                    <div className="space-y-3 animate-fade-in">
+                      {response.rerank_documents.map((doc, index) => (
+                        <Card key={index} className="p-4 bg-green-500/5 border-green-500/20 text-sm">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-mono text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">
+                              Rerank: {doc.rerank_score?.toFixed(3)}
+                            </span>
+                          </div>
+                          <div className="text-muted-foreground">
                             {highlightContent(doc.page_content, response.answer)}
                           </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </Card>
+            </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 };
