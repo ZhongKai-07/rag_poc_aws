@@ -20,4 +20,5 @@ api/config.py
 # Log file
 api/documents/
 api/question_history/
+logs/
 
