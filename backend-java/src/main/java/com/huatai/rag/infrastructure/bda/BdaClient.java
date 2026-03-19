@@ -146,21 +146,24 @@ public class BdaClient {
             this.runtimeClient = Objects.requireNonNull(runtimeClient, "runtimeClient");
             this.s3Client = Objects.requireNonNull(s3Client, "s3Client");
             this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
-            this.dataAutomationProjectArn = requireText(dataAutomationProjectArn, "dataAutomationProjectArn");
-            this.dataAutomationProfileArn = requireText(dataAutomationProfileArn, "dataAutomationProfileArn");
-            this.stage = requireText(stage, "stage");
+            this.dataAutomationProjectArn = dataAutomationProjectArn;
+            this.dataAutomationProfileArn = dataAutomationProfileArn;
+            this.stage = stage;
         }
 
         @Override
         public String startParsing(String inputUri, String outputUri) {
+            String projectArn = requireText(dataAutomationProjectArn, "dataAutomationProjectArn");
+            String profileArn = requireText(dataAutomationProfileArn, "dataAutomationProfileArn");
+            String resolvedStage = requireText(stage, "stage");
             return runtimeClient.invokeDataAutomationAsync(InvokeDataAutomationAsyncRequest.builder()
                             .clientToken(UUID.randomUUID().toString())
                             .inputConfiguration(input -> input.s3Uri(inputUri))
                             .outputConfiguration(output -> output.s3Uri(outputUri))
-                            .dataAutomationProfileArn(dataAutomationProfileArn)
+                            .dataAutomationProfileArn(profileArn)
                             .dataAutomationConfiguration(DataAutomationConfiguration.builder()
-                                    .dataAutomationProjectArn(dataAutomationProjectArn)
-                                    .stage(stage)
+                                    .dataAutomationProjectArn(projectArn)
+                                    .stage(resolvedStage)
                                     .build())
                             .build())
                     .invocationArn();
