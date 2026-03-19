@@ -87,7 +87,8 @@ Completed:
 - Task 5: domain models and ports
 - Task 6: OpenSearch adapters
 - Task 7: Bedrock adapters
+- Task 8: BDA parsing and normalization
 
 Active next step:
 
-- Task 8: BDA parsing and normalization
+- Task 9: application orchestration

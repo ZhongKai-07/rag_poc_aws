@@ -25,6 +25,7 @@ For every milestone:
 - Every completed milestone must have an explicit verification command recorded in `Plan.md`.
 - Never claim a task is complete without rerunning its verification command.
 - If a verification fails, stop and fix before starting the next milestone.
+- In this environment, if Maven needs to resolve newly added plugins or dependencies, add `-Dmaven.repo.local=$env:USERPROFILE\.m2\repository` to avoid the broken default local repository path.
 
 ## Diff Control
 
@@ -52,3 +53,4 @@ For every milestone:
 - Current Java target is temporarily `17`.
 - Current local test profile does not require a manually configured PostgreSQL instance.
 - The Java backend is not considered runnable for frontend use until real application-service wiring is complete.
+- New dependency resolution currently needs the user `.m2` repository override because the default Maven local repository path points to an unavailable `D:\download\Maven\localRepository`.

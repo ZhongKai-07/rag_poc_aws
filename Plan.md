@@ -86,7 +86,7 @@ This file is the execution overlay for current status, milestone boundaries, ver
 ### Remaining Milestones
 
 8. BDA parsing and normalization
-   - Status: next
+   - Status: completed
    - Acceptance:
      - BDA client polling flow exists
      - BDA result mapping preserves page, section path, paragraph, short sentence, assets, provenance
@@ -94,7 +94,7 @@ This file is the execution overlay for current status, milestone boundaries, ver
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=BdaResultMapperTest" test`
 
 9. Application orchestration
-   - Status: pending
+   - Status: next
    - Acceptance:
      - ingestion/query/history/registry flows implemented in `application/`
      - orchestration tests pass
@@ -160,6 +160,7 @@ After every milestone, update:
 - Current HEAD is detached and work continues there intentionally.
 - Java target is temporarily `17` because the local machine currently exposes only JDK 17.
 - Test profile uses H2 in PostgreSQL compatibility mode, so local PostgreSQL is not required for current test milestones.
+- When Maven needs to resolve newly added plugins or dependencies in this environment, use `-Dmaven.repo.local=$env:USERPROFILE\.m2\repository` because the default local repository setting points at an unavailable `D:\download\Maven\localRepository`.
 - API controllers currently depend on placeholder `application` interfaces.
   - This is intentional and temporary.
   - Real orchestration wiring is scheduled for Task 9 and Task 10.

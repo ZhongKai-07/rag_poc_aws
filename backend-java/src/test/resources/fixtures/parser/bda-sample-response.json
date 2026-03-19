@@ -1,0 +1,60 @@
+{
+  "job": {
+    "status": "SUCCESS",
+    "parser": {
+      "type": "aws-bda",
+      "version": "2025-03-01"
+    }
+  },
+  "document": {
+    "pages": [
+      {
+        "pageNumber": 1,
+        "text": "Executive Summary\nThe client agreement sets out onboarding steps and required approvals.",
+        "sectionPath": [
+          "Executive Summary"
+        ]
+      },
+      {
+        "pageNumber": 2,
+        "text": "Risk Factors\nCollateral terms are summarized in Figure 1.\nMargin obligations are monitored weekly.",
+        "sectionPath": [
+          "Risk Factors",
+          "Collateral"
+        ]
+      }
+    ],
+    "chunks": [
+      {
+        "chunkId": "chunk-1",
+        "pageNumber": 1,
+        "sectionPath": [
+          "Executive Summary"
+        ],
+        "paragraph": "The client agreement sets out onboarding steps and required approvals.",
+        "summarySentence": "The client agreement sets out onboarding steps.",
+        "assetIds": []
+      },
+      {
+        "chunkId": "chunk-2",
+        "pageNumber": 2,
+        "sectionPath": [
+          "Risk Factors",
+          "Collateral"
+        ],
+        "paragraph": "Collateral terms are summarized in Figure 1. Margin obligations are monitored weekly.",
+        "assetIds": [
+          "asset-1"
+        ]
+      }
+    ],
+    "assets": [
+      {
+        "assetId": "asset-1",
+        "assetType": "image",
+        "reference": "s3://huatai-rag/output/figure-1.png",
+        "pageNumber": 2
+      }
+    ]
+  }
+}
