@@ -18,14 +18,6 @@ import java.util.Objects;
 
 public interface DocumentIngestionApplicationService {
 
-    default Map<String, Object> ingest(String filename, byte[] content, String directoryPath) {
-        IngestionResult result = handle(new IngestionCommand(filename, content, directoryPath));
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("status", result.status());
-        response.put("message", result.message());
-        return response;
-    }
-
     IngestionResult handle(IngestionCommand command);
 
     record IngestionCommand(String filename, byte[] content, String directoryPath) {

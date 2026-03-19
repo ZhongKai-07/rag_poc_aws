@@ -89,7 +89,8 @@ Completed:
 - Task 7: Bedrock adapters
 - Task 8: BDA parsing and normalization
 - Task 9: application orchestration
+- Task 10: real API wiring
 
 Active next step:
 
-- Task 10: real API wiring
+- Task 11: storage and observability

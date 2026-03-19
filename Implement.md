@@ -55,4 +55,4 @@ For every milestone:
 - Current local test profile does not require a manually configured PostgreSQL instance.
 - The Java backend is not considered runnable for frontend use until real application-service wiring is complete.
 - New dependency resolution currently needs the user `.m2` repository override because the default Maven local repository path points to an unavailable `D:\download\Maven\localRepository`.
-- Task 9 keeps temporary API-facing bridge methods on the application service interfaces so Task 4 controller contract tests stay green until Task 10 rewires controllers to application-native models.
+- Task 10 moved API DTO mapping fully back into controllers; the remaining startup gap is now about production bean wiring and local storage support, not placeholder application contracts.

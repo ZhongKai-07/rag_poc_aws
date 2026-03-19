@@ -25,8 +25,32 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(Map.of("detail", exception.getMessage()));
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException exception) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "detail",
+                sanitizeInfrastructureMessage(exception.getMessage())));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception exception) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("detail", exception.getMessage()));
+    }
+
+    private String sanitizeInfrastructureMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return "Request failed";
+        }
+        String lowered = message.toLowerCase();
+        if (lowered.contains("bedrock")) {
+            return "Bedrock request failed";
+        }
+        if (lowered.contains("bda") || lowered.contains("data automation")) {
+            return "BDA parsing failed";
+        }
+        if (lowered.contains("opensearch")) {
+            return "OpenSearch request failed";
+        }
+        return message;
     }
 }

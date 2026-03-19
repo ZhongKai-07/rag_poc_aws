@@ -11,11 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.huatai.rag.api.common.ApiExceptionHandler;
 import com.huatai.rag.api.health.HealthController;
 import com.huatai.rag.api.upload.UploadController;
-import com.huatai.rag.api.upload.dto.ProcessedFilesResponse;
 import com.huatai.rag.application.ingestion.DocumentIngestionApplicationService;
 import com.huatai.rag.application.registry.ProcessedFileQueryApplicationService;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -41,8 +40,12 @@ class UploadControllerContractTest {
 
     @Test
     void postUploadFilesPreservesEndpointContract() throws Exception {
-        when(documentIngestionApplicationService.ingest(eq("sample.pdf"), any(byte[].class), eq("./documents/test-batch")))
-                .thenReturn(Map.of("status", "success", "message", "Files processed successfully"));
+        when(documentIngestionApplicationService.handle(any(DocumentIngestionApplicationService.IngestionCommand.class)))
+                .thenReturn(new DocumentIngestionApplicationService.IngestionResult(
+                        "success",
+                        "Files processed successfully",
+                        "2374dcf7",
+                        "s3://huatai-rag/input/sample.pdf"));
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -59,7 +62,14 @@ class UploadControllerContractTest {
 
     @Test
     void getProcessedFilesReturnsBaselineFixture() throws Exception {
-        when(processedFileQueryApplicationService.getProcessedFiles()).thenReturn(loadProcessedFilesFixture());
+        when(processedFileQueryApplicationService.listProcessedFilesView()).thenReturn(
+                new ProcessedFileQueryApplicationService.ProcessedFilesResult(
+                        "success",
+                        List.of(
+                                new ProcessedFileQueryApplicationService.ProcessedFileResult("(1) OTCD - ISDA & CSA in same doc.pdf", "2f295fa6"),
+                                new ProcessedFileQueryApplicationService.ProcessedFileResult("(2) OTCD - ISDA.pdf", "dca3cd03"),
+                                new ProcessedFileQueryApplicationService.ProcessedFileResult("PRC Client.pdf", "2374dcf7"),
+                                new ProcessedFileQueryApplicationService.ProcessedFileResult("Onboarding Decision Chart.pdf", "32a592c0"))));
 
         mockMvc.perform(get("/processed_files"))
                 .andExpect(status().isOk())
@@ -68,8 +78,8 @@ class UploadControllerContractTest {
 
     @Test
     void getIndexByFilenameReturnsFrontendCompatibleShape() throws Exception {
-        when(processedFileQueryApplicationService.getIndexByFilename("PRC Client.pdf"))
-                .thenReturn(Map.of("status", "success", "index_name", "2374dcf7"));
+        when(processedFileQueryApplicationService.findIndexByFilename("PRC Client.pdf"))
+                .thenReturn(new ProcessedFileQueryApplicationService.IndexLookupResult("success", "2374dcf7", null));
 
         mockMvc.perform(get("/get_index/PRC Client.pdf"))
                 .andExpect(status().isOk())
@@ -81,11 +91,6 @@ class UploadControllerContractTest {
         mockMvc.perform(get("/health"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"status\":\"healthy\"}", true));
-    }
-
-    private ProcessedFilesResponse loadProcessedFilesFixture() throws Exception {
-        return new com.fasterxml.jackson.databind.ObjectMapper()
-                .readValue(readFixture("fixtures/contracts/processed-files-response.json"), ProcessedFilesResponse.class);
     }
 
     private String readFixture(String path) throws Exception {

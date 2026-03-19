@@ -102,7 +102,7 @@ This file is the execution overlay for current status, milestone boundaries, ver
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=RagQueryApplicationServiceTest,DocumentIngestionApplicationServiceTest" test`
 
 10. Real API wiring
-   - Status: next
+   - Status: completed
    - Acceptance:
      - controllers use real application services
      - placeholder wiring removed
@@ -111,7 +111,7 @@ This file is the execution overlay for current status, milestone boundaries, ver
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=ApiLayerIntegrationTest" test`
 
 11. Storage and observability
-   - Status: pending
+   - Status: next
    - Acceptance:
      - local file storage adapter exists
      - request correlation support exists
@@ -161,8 +161,7 @@ After every milestone, update:
 - Java target is temporarily `17` because the local machine currently exposes only JDK 17.
 - Test profile uses H2 in PostgreSQL compatibility mode, so local PostgreSQL is not required for current test milestones.
 - When Maven needs to resolve newly added plugins or dependencies in this environment, use `-Dmaven.repo.local=$env:USERPROFILE\.m2\repository` because the default local repository setting points at an unavailable `D:\download\Maven\localRepository`.
-- API controllers currently depend on placeholder `application` interfaces.
-  - This is intentional and temporary.
-  - Task 9 introduced real orchestration behind the same service entry points.
-  - Task 10 will finish the cutover by removing API-DTO bridging from those application interfaces and remapping controllers onto application-native request/result models.
+- Task 10 removed the temporary API-DTO bridge from `application/`.
+  - Controllers now perform DTO-to-application and application-to-DTO mapping explicitly.
+  - Full production bean wiring and local storage support are still pending Task 11.
 - `backend-java/target/` must stay ignored and must not be committed.
