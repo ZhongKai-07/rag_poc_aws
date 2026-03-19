@@ -1,0 +1,15 @@
+{
+  "session_id": "baseline-session-001",
+  "index_names": [
+    "2f295fa6",
+    "32a592c0"
+  ],
+  "query": "Summarize the onboarding and agreement requirements.",
+  "module": "RAG",
+  "vec_docs_num": 3,
+  "txt_docs_num": 3,
+  "vec_score_threshold": 0.0,
+  "text_score_threshold": 0.0,
+  "rerank_score_threshold": 0.5,
+  "search_method": "mix"
+}

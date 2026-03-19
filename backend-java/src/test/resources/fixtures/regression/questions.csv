@@ -1,0 +1,6 @@
+filename,index_name,question,search_method,expected_keywords,min_source_count
+(1) OTCD - ISDA & CSA in same doc.pdf,2f295fa6,What are the ISDA and CSA requirements?,vector,"ISDA|CSA",1
+(2) OTCD - ISDA.pdf,dca3cd03,What does the ISDA document cover?,vector,"ISDA",1
+PRC Client.pdf,2374dcf7,What client requirements are described in the PRC client file?,mix,"client|PRC",1
+Onboarding Decision Chart.pdf,32a592c0,What is the onboarding decision flow?,mix,"onboarding|decision",1
+(1) OTCD - ISDA & CSA in same doc.pdf|Onboarding Decision Chart.pdf,2f295fa6|32a592c0,Summarize onboarding and agreement requirements across both documents.,mix,"onboarding|ISDA|CSA",2

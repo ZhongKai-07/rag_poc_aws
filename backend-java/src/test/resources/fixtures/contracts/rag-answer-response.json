@@ -1,0 +1,41 @@
+{
+  "answer": "A baseline-compatible answer is returned as plain text.",
+  "source_documents": [
+    {
+      "page_content": "The onboarding flow requires completing the agreement review before account activation.",
+      "score": 91.2,
+      "rerank_score": 0.93
+    },
+    {
+      "page_content": "The ISDA and CSA terms are maintained in the same source document for this baseline sample.",
+      "score": 86.4,
+      "rerank_score": 0.88
+    }
+  ],
+  "recall_documents": [
+    {
+      "page_content": "The onboarding flow requires completing the agreement review before account activation.",
+      "score": 91.2
+    },
+    {
+      "page_content": "The ISDA and CSA terms are maintained in the same source document for this baseline sample.",
+      "score": 86.4
+    },
+    {
+      "page_content": "Client materials describe the decision checkpoints before processing begins.",
+      "score": 81.7
+    }
+  ],
+  "rerank_documents": [
+    {
+      "page_content": "The onboarding flow requires completing the agreement review before account activation.",
+      "score": 91.2,
+      "rerank_score": 0.93
+    },
+    {
+      "page_content": "The ISDA and CSA terms are maintained in the same source document for this baseline sample.",
+      "score": 86.4,
+      "rerank_score": 0.88
+    }
+  ]
+}

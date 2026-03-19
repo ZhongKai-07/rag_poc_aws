@@ -1,0 +1,17 @@
+{
+  "status": "success",
+  "questions": [
+    {
+      "question": "What is the onboarding decision path?",
+      "count": 4
+    },
+    {
+      "question": "What are the ISDA and CSA requirements?",
+      "count": 3
+    },
+    {
+      "question": "Which client checks must be completed first?",
+      "count": 2
+    }
+  ]
+}
