@@ -46,6 +46,11 @@ class BdaParseResultPersistenceAdapterTest {
         assertThat(result.indexName()).isEqualTo("ced4c5ef");
         assertThat(result.chunkCount()).isEqualTo(29);
         assertThat(result.parserType()).isEqualTo("aws-bda");
+        assertThat(result.documentFileId()).isEqualTo(docId);
+        assertThat(result.s3OutputPath()).isEqualTo("s3://bucket/result.json");
+        assertThat(result.pageCount()).isEqualTo(8);
+        assertThat(result.parserVersion()).isEqualTo("2025-03-01");
+        assertThat(result.createdAt()).isEqualTo(now);
     }
 
     @Test
