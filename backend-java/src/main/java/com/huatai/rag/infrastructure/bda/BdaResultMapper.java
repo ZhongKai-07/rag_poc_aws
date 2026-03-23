@@ -20,7 +20,7 @@ public class BdaResultMapper {
 
     private static final Pattern SENTENCE_BOUNDARY = Pattern.compile("(?<=[.!?])\\s+");
 
-    public ParsedDocument map(JsonNode payload, String fileName, String indexName) {
+    public ParsedDocument map(JsonNode payload, String fileName, String indexName, String s3OutputPath) {
         JsonNode documentNode = payload.path("document");
         JsonNode pagesNode = selectPagesNode(payload, documentNode);
         Map<String, ParsedAsset> assetsById = mapAssets(documentNode.path("assets"));
@@ -44,7 +44,7 @@ public class BdaResultMapper {
                 pages,
                 chunks,
                 new ArrayList<>(assetsById.values()),
-                "",                      // s3OutputPath placeholder — filled in Task 3
+                s3OutputPath,
                 pType,
                 pVersion);
     }
