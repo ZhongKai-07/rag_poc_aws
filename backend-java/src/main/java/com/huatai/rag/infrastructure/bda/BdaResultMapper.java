@@ -27,14 +27,16 @@ public class BdaResultMapper {
         Map<Integer, List<String>> pageSections = mapPageSections(pagesNode);
 
         List<ParsedPage> pages = mapPages(pagesNode);
+        String pType = parserType(payload);
+        String pVersion = parserVersion(payload);
         List<ParsedChunk> chunks = mapChunks(
                 documentNode.path("chunks"),
                 pagesNode,
                 assetsById,
                 pageSections,
                 fileName,
-                parserType(payload),
-                parserVersion(payload));
+                pType,
+                pVersion);
 
         return new ParsedDocument(
                 fileName,
@@ -43,8 +45,8 @@ public class BdaResultMapper {
                 chunks,
                 new ArrayList<>(assetsById.values()),
                 "",                      // s3OutputPath placeholder — filled in Task 3
-                parserType(payload),
-                parserVersion(payload));
+                pType,
+                pVersion);
     }
 
     private Map<String, ParsedAsset> mapAssets(JsonNode assetsNode) {
@@ -71,7 +73,7 @@ public class BdaResultMapper {
 
         Map<Integer, List<String>> pageSections = new LinkedHashMap<>();
         for (JsonNode pageNode : pagesNode) {
-            pageSections.put(pageNode.path("pageNumber").asInt(), readStringList(pageNode.path("sectionPath")));
+            pageSections.put(pageNumber(pageNode), readStringList(pageNode.path("sectionPath")));
         }
         return pageSections;
     }
@@ -236,12 +238,6 @@ public class BdaResultMapper {
         }
         value = normalizeWhitespace(payload.path("metadata").path("parser").path("version").asText(""));
         return value.isBlank() ? "unknown" : value;
-    }
-
-    private String parserProvenance(JsonNode payload) {
-        String type = parserType(payload);
-        String version = parserVersion(payload);
-        return version.isBlank() ? type : type + ":" + version;
     }
 
     private String normalizeWhitespace(String value) {
