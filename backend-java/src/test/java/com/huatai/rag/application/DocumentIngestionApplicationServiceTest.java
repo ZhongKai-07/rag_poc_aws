@@ -44,7 +44,9 @@ class DocumentIngestionApplicationServiceTest {
                 List.of(new ParsedPage(1, "Executive Summary", List.of("Executive Summary"))),
                 List.of(chunk),
                 List.of(),
-                "aws-bda:2025-03-01");
+                "s3://huatai-rag/_bda_output/2374dcf7.json",  // s3OutputPath
+                "aws-bda",                                      // parserType
+                "2025-03-01");                                  // parserVersion
         FakeParser parser = new FakeParser(parsedDocument);
         FakeEmbeddingPort embeddingPort = new FakeEmbeddingPort(List.of(List.of(0.1f, 0.2f, 0.3f)));
 

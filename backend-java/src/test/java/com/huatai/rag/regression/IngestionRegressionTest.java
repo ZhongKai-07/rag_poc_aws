@@ -178,7 +178,9 @@ class IngestionRegressionTest {
                     List.of(new ParsedPage(1, "Client", List.of("Client"))),
                     List.of(chunk),
                     List.of(),
-                    "aws-bda:2025-03-01");
+                    "",
+                    "aws-bda",
+                    "2025-03-01");
         }
     }
 
