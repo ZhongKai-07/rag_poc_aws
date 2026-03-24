@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Upload, MessageSquare, Moon, Sun } from "lucide-react";
+import { Home, Upload, MessageSquare, Moon, Sun, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
@@ -26,6 +26,10 @@ const Layout = ({ children }: LayoutProps) => {
     { path: "/qa", label: "Q&A", icon: MessageSquare },
   ];
 
+  const allNavItems = import.meta.env.DEV
+    ? [...navItems, { path: "/admin", label: "Admin", icon: Settings }]
+    : navItems;
+
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans selection:bg-primary/20">
       {/* Navbar */}
@@ -41,7 +45,7 @@ const Layout = ({ children }: LayoutProps) => {
           </Link>
 
           <nav className="flex items-center gap-6">
-            {navItems.map((item) => {
+            {allNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (
