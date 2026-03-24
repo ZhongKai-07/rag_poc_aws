@@ -35,8 +35,18 @@ public class AdminController {
                 .toList();
     }
 
+    private static final java.util.regex.Pattern INDEX_NAME_PATTERN =
+            java.util.regex.Pattern.compile("[a-f0-9]{8}");
+
+    private void validateIndexName(String indexName) {
+        if (!INDEX_NAME_PATTERN.matcher(indexName).matches()) {
+            throw new IllegalArgumentException("Invalid index name: " + indexName);
+        }
+    }
+
     @GetMapping("/parse_results/{indexName}/raw")
     public ResponseEntity<JsonNode> getRawBdaJson(@PathVariable String indexName) {
+        validateIndexName(indexName);
         Optional<JsonNode> result = parseResultQueryService.fetchRawBdaJson(indexName);
         return result.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -44,6 +54,7 @@ public class AdminController {
 
     @GetMapping("/parse_results/{indexName}/chunks")
     public List<Map<String, Object>> getIndexedChunks(@PathVariable String indexName) {
+        validateIndexName(indexName);
         return parseResultQueryService.fetchIndexedChunks(indexName).stream()
                 .map(c -> Map.<String, Object>of(
                         "chunk_id", c.chunkId(),

@@ -51,8 +51,14 @@ class AdminControllerContractTest {
     void getRawReturns404WhenNotFound() throws Exception {
         when(parseResultQueryService.fetchRawBdaJson(anyString())).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/admin/parse_results/unknown/raw"))
+        mockMvc.perform(get("/admin/parse_results/aabbccdd/raw"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getRawReturns400WhenIndexNameInvalid() throws Exception {
+        mockMvc.perform(get("/admin/parse_results/invalid/raw"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

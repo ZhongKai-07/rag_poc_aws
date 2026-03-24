@@ -97,10 +97,10 @@ public class ParseResultQueryApplicationService {
             return Optional.of(objectMapper.readTree(bytes));
         } catch (NoSuchKeyException e) {
             log.warn("BDA result.json not found in S3: {}", s3Uri);
-            throw new S3ObjectNotFoundException("BDA output not found at: " + s3Uri);
+            throw new S3ObjectNotFoundException("BDA output not found in S3");
         } catch (Exception e) {
             log.error("Failed to fetch BDA JSON from S3: {}", s3Uri, e);
-            throw new S3FetchException("Failed to fetch BDA output: " + e.getMessage());
+            throw new S3FetchException("Failed to fetch BDA output from S3", e);
         }
     }
 
@@ -145,6 +145,7 @@ public class ParseResultQueryApplicationService {
     }
     public static class S3FetchException extends RuntimeException {
         public S3FetchException(String msg) { super(msg); }
+        public S3FetchException(String msg, Throwable cause) { super(msg, cause); }
     }
     public static class IndexNotFoundException extends RuntimeException {
         public IndexNotFoundException(String msg) { super(msg); }

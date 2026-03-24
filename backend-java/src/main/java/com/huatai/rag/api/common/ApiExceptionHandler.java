@@ -25,8 +25,9 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException exception) {
-        return ResponseEntity.badRequest().body(Map.of("detail", safeMessage(exception, "Invalid argument")));
+    public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("detail", "Invalid request parameter"));
     }
 
     @ExceptionHandler(IllegalStateException.class)
@@ -50,7 +51,7 @@ public class ApiExceptionHandler {
             ParseResultQueryApplicationService.S3ObjectNotFoundException e) {
         log.warn("BDA output not found in S3: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(Map.of("detail", e.getMessage()));
+                .body(Map.of("detail", "BDA output not found in S3"));
     }
 
     @ExceptionHandler(ParseResultQueryApplicationService.IndexNotFoundException.class)
@@ -64,7 +65,7 @@ public class ApiExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception exception) {
         log.error("Unhandled request failure", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("detail", safeMessage(exception, "Internal server error")));
+                .body(Map.of("detail", "Internal server error"));
     }
 
     private String safeMessage(Exception exception, String fallback) {
