@@ -1,6 +1,7 @@
 package com.huatai.rag.infrastructure.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huatai.rag.application.admin.ParseResultQueryApplicationService;
 import com.huatai.rag.application.common.ContextAssemblyService;
 import com.huatai.rag.application.history.QuestionHistoryApplicationService;
 import com.huatai.rag.application.ingestion.DocumentIngestionApplicationService;
@@ -217,5 +218,20 @@ public class ApplicationWiringConfig {
     @Bean
     public QuestionHistoryApplicationService questionHistoryApplicationService(QuestionHistoryPort questionHistoryPort) {
         return new QuestionHistoryApplicationService.Default(questionHistoryPort);
+    }
+
+    @Bean
+    public ParseResultQueryApplicationService parseResultQueryApplicationService(
+            BdaParseResultPort bdaParseResultPort,
+            DocumentRegistryPort documentRegistryPort,
+            S3Client s3Client,
+            RestClient openSearchRestClient,
+            ObjectMapper objectMapper) {
+        return new ParseResultQueryApplicationService(
+                bdaParseResultPort,
+                documentRegistryPort,
+                s3Client,
+                openSearchRestClient,
+                objectMapper);
     }
 }
