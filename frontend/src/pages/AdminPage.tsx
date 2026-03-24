@@ -14,7 +14,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 
 // ── JSON tree viewer ──────────────────────────────────────────────────────────
 function JsonTree({ data, depth = 0 }: { data: unknown; depth?: number }) {
-  const [open, setOpen] = useState(depth < 2);
+  const [open, setOpen] = useState(depth < 1);
   if (data === null || typeof data !== "object") {
     return <span className="text-green-600 dark:text-green-400">{JSON.stringify(data)}</span>;
   }
@@ -204,7 +204,7 @@ const AdminPage: React.FC = () => {
         <Card className="overflow-hidden">
           <CardContent className="p-3 h-full">
             {selected ? (
-              <DetailPanel selected={selected} />
+              <DetailPanel key={`${selected.index_name}-${selected.created_at}`} selected={selected} />
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                 选择左侧文档查看解析详情
