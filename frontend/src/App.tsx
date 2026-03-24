@@ -23,7 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/qa" element={<QA />} />
-            <Route path="/admin" element={<AdminPage />} />
+            {import.meta.env.DEV && <Route path="/admin" element={<AdminPage />} />}
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
