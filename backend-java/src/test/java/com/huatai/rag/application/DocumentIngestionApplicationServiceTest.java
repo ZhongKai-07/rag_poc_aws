@@ -49,13 +49,15 @@ class DocumentIngestionApplicationServiceTest {
                 "2025-03-01");                                  // parserVersion
         FakeParser parser = new FakeParser(parsedDocument);
         FakeEmbeddingPort embeddingPort = new FakeEmbeddingPort(List.of(List.of(0.1f, 0.2f, 0.3f)));
+        FakeBdaParseResultPort parseResultPort = new FakeBdaParseResultPort();
 
         DocumentIngestionApplicationService.Default service = new DocumentIngestionApplicationService.Default(
                 storage,
                 registryPort,
                 parser,
                 embeddingPort,
-                indexWriter);
+                indexWriter,
+                parseResultPort);   // new 6th parameter
 
         DocumentIngestionApplicationService.IngestionResult result = service.handle(
                 new DocumentIngestionApplicationService.IngestionCommand(
@@ -78,6 +80,14 @@ class DocumentIngestionApplicationServiceTest {
         assertThat(registryPort.ingestionStatuses)
                 .extracting(IngestionJobRecord::status)
                 .containsExactly(IngestionStatus.PROCESSING, IngestionStatus.COMPLETED);
+        assertThat(parseResultPort.savedRecord).isNotNull();
+        assertThat(parseResultPort.savedRecord.indexName()).isEqualTo("2374dcf7");
+        assertThat(parseResultPort.savedRecord.s3OutputPath())
+                .isEqualTo("s3://huatai-rag/_bda_output/2374dcf7.json");
+        assertThat(parseResultPort.savedRecord.chunkCount()).isEqualTo(1);
+        assertThat(parseResultPort.savedRecord.pageCount()).isEqualTo(1);
+        assertThat(parseResultPort.savedRecord.parserType()).isEqualTo("aws-bda");
+        assertThat(parseResultPort.savedRecord.parserVersion()).isEqualTo("2025-03-01");
     }
 
     @Test
@@ -216,6 +226,27 @@ class DocumentIngestionApplicationServiceTest {
         @Override
         public void writeChunks(String indexName, List<ParsedChunk> chunks, List<List<Float>> embeddings) {
             this.writtenChunks = chunks;
+        }
+    }
+
+    private static final class FakeBdaParseResultPort implements com.huatai.rag.domain.bda.BdaParseResultPort {
+        com.huatai.rag.domain.bda.BdaParseResultRecord savedRecord;
+
+        @Override
+        public com.huatai.rag.domain.bda.BdaParseResultRecord save(
+                com.huatai.rag.domain.bda.BdaParseResultRecord record) {
+            this.savedRecord = record;
+            return record;
+        }
+
+        @Override
+        public java.util.List<com.huatai.rag.domain.bda.BdaParseResultRecord> findAll() {
+            return java.util.List.of();
+        }
+
+        @Override
+        public java.util.Optional<com.huatai.rag.domain.bda.BdaParseResultRecord> findLatestByIndexName(String indexName) {
+            return java.util.Optional.empty();
         }
     }
 }

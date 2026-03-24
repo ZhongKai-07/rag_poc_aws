@@ -9,12 +9,18 @@ import com.huatai.rag.domain.parser.DocumentParser;
 import com.huatai.rag.domain.parser.ParsedChunk;
 import com.huatai.rag.domain.parser.ParsedDocument;
 import com.huatai.rag.domain.parser.ParserRequest;
+import com.huatai.rag.domain.bda.BdaParseResultPort;
+import com.huatai.rag.domain.bda.BdaParseResultRecord;
 import com.huatai.rag.domain.retrieval.EmbeddingPort;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public interface DocumentIngestionApplicationService {
 
@@ -44,47 +50,53 @@ public interface DocumentIngestionApplicationService {
     }
 
     final class Default implements DocumentIngestionApplicationService {
+        private static final Logger log = LoggerFactory.getLogger(Default.class);
         private final DocumentStorage documentStorage;
         private final DocumentRegistryPort documentRegistryPort;
         private final DocumentParser documentParser;
         private final EmbeddingPort embeddingPort;
         private final DocumentChunkWriter documentChunkWriter;
+        private final BdaParseResultPort bdaParseResultPort;
 
         public Default(
                 DocumentStorage documentStorage,
                 DocumentRegistryPort documentRegistryPort,
                 DocumentParser documentParser,
                 EmbeddingPort embeddingPort,
-                DocumentChunkWriter documentChunkWriter) {
+                DocumentChunkWriter documentChunkWriter,
+                BdaParseResultPort bdaParseResultPort) {
             this.documentStorage = Objects.requireNonNull(documentStorage, "documentStorage");
             this.documentRegistryPort = Objects.requireNonNull(documentRegistryPort, "documentRegistryPort");
             this.documentParser = Objects.requireNonNull(documentParser, "documentParser");
             this.embeddingPort = Objects.requireNonNull(embeddingPort, "embeddingPort");
             this.documentChunkWriter = Objects.requireNonNull(documentChunkWriter, "documentChunkWriter");
+            this.bdaParseResultPort = Objects.requireNonNull(bdaParseResultPort, "bdaParseResultPort");
         }
 
         @Override
         public IngestionResult handle(IngestionCommand command) {
-            DocumentFileRecord existingRecord = documentRegistryPort.findByFilename(command.filename())
-                    .filter(record -> record.status() == IngestionStatus.COMPLETED)
-                    .orElse(null);
-            if (existingRecord != null) {
+            Optional<DocumentFileRecord> existing = documentRegistryPort.findByFilename(command.filename());
+            if (existing.isPresent() && existing.get().status() == IngestionStatus.COMPLETED) {
+                DocumentFileRecord completed = existing.get();
                 return new IngestionResult(
                         "success",
                         "Files processed successfully",
-                        existingRecord.indexName(),
-                        existingRecord.storagePath());
+                        completed.indexName(),
+                        completed.storagePath());
             }
 
             String indexName = IndexNamingPolicy.indexNameFor(command.filename());
             StoredDocument storedDocument = documentStorage.store(command.filename(), command.content(), command.directoryPath());
+
+            // Reuse existing record ID for FAILED/PROCESSING retries to avoid unique constraint violation on index_name
+            UUID existingId = existing.map(DocumentFileRecord::id).orElse(null);
             DocumentFileRecord processingDocument = documentRegistryPort.saveDocument(new DocumentFileRecord(
-                    null,
+                    existingId,
                     command.filename(),
                     indexName,
                     storedDocument.storagePath(),
                     IngestionStatus.PROCESSING,
-                    Instant.now(),
+                    existing.map(DocumentFileRecord::createdAt).orElse(Instant.now()),
                     Instant.now()));
             IngestionJobRecord processingJob = documentRegistryPort.saveIngestionJob(new IngestionJobRecord(
                     null,
@@ -99,13 +111,33 @@ public interface DocumentIngestionApplicationService {
                         command.filename(),
                         indexName,
                         storedDocument.storagePath()));
+                log.info("Parsed document {} into {} chunks", command.filename(), parsedDocument.chunks().size());
+                // non-blocking: persist BDA parse metadata (failure must not abort ingestion)
+                try {
+                    bdaParseResultPort.save(new BdaParseResultRecord(
+                            null,
+                            processingDocument.id(),
+                            indexName,
+                            parsedDocument.s3OutputPath(),
+                            parsedDocument.chunks().size(),
+                            parsedDocument.pages().size(),
+                            parsedDocument.parserType(),
+                            parsedDocument.parserVersion(),
+                            Instant.now()));
+                } catch (Exception e) {
+                    log.warn("Failed to save BDA parse result for index {}: {}", indexName, e.getMessage());
+                }
                 List<String> sentences = parsedDocument.chunks().stream()
                         .map(ParsedChunk::sentenceText)
                         .toList();
                 List<List<Float>> embeddings = sentences.isEmpty() ? List.of() : embeddingPort.embedAll(sentences);
+                log.info("Generated {} embeddings for {}", embeddings.size(), command.filename());
                 if (!parsedDocument.chunks().isEmpty() && !embeddings.isEmpty()) {
+                    log.info("Writing {} chunks into OpenSearch index {}", parsedDocument.chunks().size(), indexName);
                     documentChunkWriter.ensureIndexExists(indexName, embeddings.get(0).size());
                     documentChunkWriter.writeChunks(indexName, parsedDocument.chunks(), embeddings);
+                } else {
+                    log.warn("Skipping OpenSearch write for {} because chunks or embeddings were empty", command.filename());
                 }
 
                 documentRegistryPort.saveDocument(new DocumentFileRecord(

@@ -6,6 +6,7 @@ import com.huatai.rag.application.history.QuestionHistoryApplicationService;
 import com.huatai.rag.application.ingestion.DocumentIngestionApplicationService;
 import com.huatai.rag.application.registry.ProcessedFileQueryApplicationService;
 import com.huatai.rag.application.rag.RagQueryApplicationService;
+import com.huatai.rag.domain.bda.BdaParseResultPort;
 import com.huatai.rag.domain.document.DocumentRegistryPort;
 import com.huatai.rag.domain.history.QuestionHistoryPort;
 import com.huatai.rag.domain.parser.DocumentParser;
@@ -25,12 +26,14 @@ import com.huatai.rag.infrastructure.opensearch.OpenSearchDocumentChunkWriter;
 import com.huatai.rag.infrastructure.opensearch.OpenSearchDocumentWriter;
 import com.huatai.rag.infrastructure.opensearch.OpenSearchIndexManager;
 import com.huatai.rag.infrastructure.opensearch.OpenSearchRetrievalAdapter;
+import com.huatai.rag.infrastructure.persistence.BdaParseResultPersistenceAdapter;
 import com.huatai.rag.infrastructure.persistence.DocumentRegistryPersistenceAdapter;
 import com.huatai.rag.infrastructure.persistence.QuestionHistoryPersistenceAdapter;
+import com.huatai.rag.infrastructure.persistence.repository.BdaParseResultJpaRepository;
 import com.huatai.rag.infrastructure.persistence.repository.DocumentFileJpaRepository;
 import com.huatai.rag.infrastructure.persistence.repository.IngestionJobJpaRepository;
 import com.huatai.rag.infrastructure.persistence.repository.QuestionHistoryJpaRepository;
-import com.huatai.rag.infrastructure.storage.LocalFileStorageAdapter;
+import com.huatai.rag.infrastructure.storage.S3DocumentStorageAdapter;
 import com.huatai.rag.infrastructure.support.RetryUtils;
 import org.opensearch.client.RestClient;
 import org.springframework.context.annotation.Bean;
@@ -66,20 +69,19 @@ public class ApplicationWiringConfig {
     public RerankPort rerankPort(
             BedrockAgentRuntimeClient bedrockAgentRuntimeClient,
             RagProperties ragProperties,
+            AwsProperties awsProperties,
             RetryUtils retryUtils) {
-        return new BedrockRerankAdapter(bedrockAgentRuntimeClient, ragProperties, retryUtils);
+        return new BedrockRerankAdapter(bedrockAgentRuntimeClient, ragProperties, awsProperties, retryUtils);
     }
 
     @Bean
     public AnswerGenerationPort answerGenerationPort(
             BedrockRuntimeClient bedrockRuntimeClient,
-            ObjectMapper objectMapper,
             RagProperties ragProperties,
             PromptTemplateFactory promptTemplateFactory,
             RetryUtils retryUtils) {
         return new BedrockAnswerGenerationAdapter(
                 bedrockRuntimeClient,
-                objectMapper,
                 ragProperties,
                 promptTemplateFactory,
                 retryUtils);
@@ -129,8 +131,10 @@ public class ApplicationWiringConfig {
     }
 
     @Bean
-    public LocalFileStorageAdapter localFileStorageAdapter(StorageProperties storageProperties) {
-        return new LocalFileStorageAdapter(storageProperties);
+    public DocumentIngestionApplicationService.DocumentStorage documentStorage(
+            S3Client s3Client,
+            StorageProperties storageProperties) {
+        return new S3DocumentStorageAdapter(s3Client, storageProperties);
     }
 
     @Bean
@@ -156,8 +160,11 @@ public class ApplicationWiringConfig {
     }
 
     @Bean
-    public DocumentParser documentParser(BdaClient bdaClient, BdaResultMapper bdaResultMapper) {
-        return new BdaDocumentParserAdapter(bdaClient, bdaResultMapper);
+    public DocumentParser documentParser(
+            BdaClient bdaClient,
+            BdaResultMapper bdaResultMapper,
+            StorageProperties storageProperties) {
+        return new BdaDocumentParserAdapter(bdaClient, bdaResultMapper, storageProperties);
     }
 
     @Bean
@@ -181,18 +188,25 @@ public class ApplicationWiringConfig {
     }
 
     @Bean
+    public BdaParseResultPort bdaParseResultPort(BdaParseResultJpaRepository bdaParseResultJpaRepository) {
+        return new BdaParseResultPersistenceAdapter(bdaParseResultJpaRepository);
+    }
+
+    @Bean
     public DocumentIngestionApplicationService documentIngestionApplicationService(
-            LocalFileStorageAdapter localFileStorageAdapter,
+            DocumentIngestionApplicationService.DocumentStorage documentStorage,
             DocumentRegistryPort documentRegistryPort,
             DocumentParser documentParser,
             EmbeddingPort embeddingPort,
-            DocumentIngestionApplicationService.DocumentChunkWriter documentChunkWriter) {
+            DocumentIngestionApplicationService.DocumentChunkWriter documentChunkWriter,
+            BdaParseResultPort bdaParseResultPort) {
         return new DocumentIngestionApplicationService.Default(
-                localFileStorageAdapter,
+                documentStorage,
                 documentRegistryPort,
                 documentParser,
                 embeddingPort,
-                documentChunkWriter);
+                documentChunkWriter,
+                bdaParseResultPort);
     }
 
     @Bean

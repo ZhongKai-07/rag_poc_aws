@@ -13,6 +13,8 @@ import com.huatai.rag.domain.parser.ParsedChunk;
 import com.huatai.rag.domain.parser.ParsedDocument;
 import com.huatai.rag.domain.parser.ParsedPage;
 import com.huatai.rag.domain.parser.ParserRequest;
+import com.huatai.rag.domain.bda.BdaParseResultPort;
+import com.huatai.rag.domain.bda.BdaParseResultRecord;
 import com.huatai.rag.domain.retrieval.EmbeddingPort;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,7 +62,8 @@ class IngestionRegressionTest {
                 registryPort,
                 parser,
                 embeddingPort,
-                chunkWriter);
+                chunkWriter,
+                new NoOpBdaParseResultPort());
 
         DocumentIngestionApplicationService.IngestionResult result = service.handle(
                 new DocumentIngestionApplicationService.IngestionCommand(
@@ -191,6 +194,23 @@ class IngestionRegressionTest {
         public List<List<Float>> embedAll(List<String> texts) {
             invocationCount++;
             return List.of(List.of(0.1f, 0.2f, 0.3f));
+        }
+    }
+
+    private static final class NoOpBdaParseResultPort implements BdaParseResultPort {
+        @Override
+        public BdaParseResultRecord save(BdaParseResultRecord record) {
+            return record;
+        }
+
+        @Override
+        public java.util.List<BdaParseResultRecord> findAll() {
+            return java.util.List.of();
+        }
+
+        @Override
+        public java.util.Optional<BdaParseResultRecord> findLatestByIndexName(String indexName) {
+            return java.util.Optional.empty();
         }
     }
 

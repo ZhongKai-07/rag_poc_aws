@@ -22,6 +22,8 @@ import com.huatai.rag.domain.document.DocumentRegistryPort;
 import com.huatai.rag.domain.document.IndexNamingPolicy;
 import com.huatai.rag.domain.document.IngestionJobRecord;
 import com.huatai.rag.domain.document.IngestionStatus;
+import com.huatai.rag.domain.bda.BdaParseResultPort;
+import com.huatai.rag.domain.bda.BdaParseResultRecord;
 import com.huatai.rag.domain.history.QuestionHistoryPort;
 import com.huatai.rag.domain.parser.DocumentParser;
 import com.huatai.rag.domain.parser.ParsedChunk;
@@ -286,6 +288,12 @@ class ApiLayerIntegrationTest {
         }
 
         @Bean
+        @Primary
+        FakeBdaParseResultPort fakeBdaParseResultPort() {
+            return new FakeBdaParseResultPort();
+        }
+
+        @Bean
         ContextAssemblyService contextAssemblyService() {
             return new ContextAssemblyService();
         }
@@ -311,13 +319,15 @@ class ApiLayerIntegrationTest {
                 FakeDocumentRegistryPort documentRegistryPort,
                 FakeDocumentParser documentParser,
                 FakeEmbeddingPort embeddingPort,
-                FakeDocumentChunkWriter documentChunkWriter) {
+                FakeDocumentChunkWriter documentChunkWriter,
+                FakeBdaParseResultPort bdaParseResultPort) {
             return new DocumentIngestionApplicationService.Default(
                     documentStorage,
                     documentRegistryPort,
                     documentParser,
                     embeddingPort,
-                    documentChunkWriter);
+                    documentChunkWriter,
+                    bdaParseResultPort);
         }
 
         @Bean
@@ -454,6 +464,23 @@ class ApiLayerIntegrationTest {
         @Override
         public List<List<Float>> embedAll(List<String> texts) {
             return List.of(List.of(0.1f, 0.2f, 0.3f));
+        }
+    }
+
+    static final class FakeBdaParseResultPort implements BdaParseResultPort {
+        @Override
+        public BdaParseResultRecord save(BdaParseResultRecord record) {
+            return record;
+        }
+
+        @Override
+        public List<BdaParseResultRecord> findAll() {
+            return List.of();
+        }
+
+        @Override
+        public Optional<BdaParseResultRecord> findLatestByIndexName(String indexName) {
+            return Optional.empty();
         }
     }
 
