@@ -15,7 +15,7 @@ class PromptTemplateFactoryTest {
     void systemPromptKeepsExpertRoleAndDirectAnswerStyle() {
         String systemPrompt = promptTemplateFactory.buildSystemPrompt();
 
-        assertThat(systemPrompt).contains("证券专家");
+        assertThat(systemPrompt).contains("COB专家");
         assertThat(systemPrompt).contains("根据相关文档回答");
     }
 
