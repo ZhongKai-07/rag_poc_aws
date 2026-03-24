@@ -212,7 +212,7 @@ class ApiLayerIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().json("{\"detail\":\"Bedrock request failed\"}", true));
+                .andExpect(content().json("{\"detail\":\"Internal server error\"}", true));
 
         fakeAnswerGenerationPort.failure = null;
         fakeDocumentParser.failure = new IllegalStateException("BDA parsing failed: timeout");
@@ -227,7 +227,7 @@ class ApiLayerIntegrationTest {
                         .file(file)
                         .param("directory_path", "./documents/test-batch"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().json("{\"detail\":\"BDA parsing failed\"}", true));
+                .andExpect(content().json("{\"detail\":\"Internal server error\"}", true));
     }
 
     @TestConfiguration

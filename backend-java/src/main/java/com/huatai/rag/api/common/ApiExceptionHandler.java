@@ -33,9 +33,8 @@ public class ApiExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException exception) {
         log.error("Infrastructure request failed", exception);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "detail",
-                sanitizeInfrastructureMessage(exception.getMessage())));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("detail", "Internal server error"));
     }
 
     @ExceptionHandler(ParseResultQueryApplicationService.S3FetchException.class)
@@ -50,7 +49,7 @@ public class ApiExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleS3ObjectNotFound(
             ParseResultQueryApplicationService.S3ObjectNotFoundException e) {
         log.warn("BDA output not found in S3: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("detail", "BDA output not found in S3"));
     }
 
@@ -58,7 +57,7 @@ public class ApiExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleIndexNotFound(
             ParseResultQueryApplicationService.IndexNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("detail", e.getMessage()));
+                .body(Map.of("detail", "OpenSearch index not found"));
     }
 
     @ExceptionHandler(Exception.class)
@@ -68,24 +67,4 @@ public class ApiExceptionHandler {
                 .body(Map.of("detail", "Internal server error"));
     }
 
-    private String safeMessage(Exception exception, String fallback) {
-        return exception.getMessage() != null ? exception.getMessage() : fallback;
-    }
-
-    private String sanitizeInfrastructureMessage(String message) {
-        if (message == null || message.isBlank()) {
-            return "Request failed";
-        }
-        String lowered = message.toLowerCase();
-        if (lowered.contains("bedrock")) {
-            return "Bedrock request failed";
-        }
-        if (lowered.contains("bda") || lowered.contains("data automation")) {
-            return "BDA parsing failed";
-        }
-        if (lowered.contains("opensearch")) {
-            return "OpenSearch request failed";
-        }
-        return message;
-    }
 }

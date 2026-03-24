@@ -71,12 +71,12 @@ class AdminControllerContractTest {
     }
 
     @Test
-    void getRawReturns502WhenS3ObjectMissing() throws Exception {
+    void getRawReturns404WhenS3ObjectMissing() throws Exception {
         when(parseResultQueryService.fetchRawBdaJson(anyString()))
                 .thenThrow(new ParseResultQueryApplicationService.S3ObjectNotFoundException("key not found"));
 
         mockMvc.perform(get("/admin/parse_results/ced4c5ef/raw"))
-                .andExpect(status().isBadGateway());
+                .andExpect(status().isNotFound());
     }
 
     @Test

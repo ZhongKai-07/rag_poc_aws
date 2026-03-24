@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.opensearch.client.Request;
 import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestClient;
@@ -64,22 +65,22 @@ public class ParseResultQueryApplicationService {
     // --- query methods ---
 
     public List<ParseResultSummary> listAll() {
+        Map<String, String> indexToFilename = documentRegistryPort.listProcessedFiles().stream()
+                .collect(Collectors.toMap(
+                        doc -> doc.indexName(),
+                        doc -> doc.filename(),
+                        (a, b) -> a));
+
         return bdaParseResultPort.findAll().stream()
                 .sorted((a, b) -> b.createdAt().compareTo(a.createdAt()))
-                .map(record -> {
-                    String filename = documentRegistryPort
-                            .findByIndexName(record.indexName())
-                            .map(doc -> doc.filename())
-                            .orElse(record.indexName());
-                    return new ParseResultSummary(
-                            record.indexName(),
-                            filename,
-                            record.chunkCount(),
-                            record.pageCount(),
-                            record.parserType(),
-                            record.parserVersion(),
-                            record.createdAt());
-                })
+                .map(record -> new ParseResultSummary(
+                        record.indexName(),
+                        indexToFilename.getOrDefault(record.indexName(), record.indexName()),
+                        record.chunkCount(),
+                        record.pageCount(),
+                        record.parserType(),
+                        record.parserVersion(),
+                        record.createdAt()))
                 .toList();
     }
 
