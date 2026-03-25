@@ -93,6 +93,25 @@ Completed:
 - Task 11: storage and observability
 - Task 12: regression coverage and cutover checklist
 
+Post-migration fixes (2026-03-21 to 2026-03-22):
+
+- `BedrockAnswerGenerationAdapter` switched from `invokeModel` API to `converse` API. Third-party models (Qwen, etc.) only support `converse`; `invokeModel` returns "model identifier is invalid". This also eliminated the Anthropic/OpenAI dual-format handling.
+- Answer model default changed to `qwen.qwen3-235b-a22b-2507-v1:0` (user-selected from Bedrock model catalog).
+- `BEDROCK_REGION` default changed to `us-west-2` in both `application.yml` and `RagProperties.java`.
+- Model IDs externalized to environment variables (`RAG_ANSWER_MODEL_ID`, `RAG_EMBEDDING_MODEL_ID`, `RAG_RERANK_MODEL_ID`).
+- CORS configuration added (`CorsConfig.java`) to allow cross-origin requests from the Vite dev server.
+- Frontend `.env` created with `VITE_API_BASE_URL=http://localhost:8001`.
+- `OpenSearchIndexManager.ensureIndex()` rewritten to use `GET /_mapping` as single source of truth (eliminated HEAD+GET two-step inconsistency over HTTP/2). Now uses 3-state `MappingStatus` enum (`VALID`/`INVALID`/`NOT_FOUND`). DELETE tolerates 404 gracefully.
+- All legacy OpenSearch indices and PostgreSQL records cleared on `2026-03-22` for a clean restart.
+- AWS connectivity diagnostic script added (`backend-java/diagnose-aws.sh`).
+
+End-to-end verified on `2026-03-22`:
+
+- Full RAG pipeline operational: upload → BDA parsing → OpenSearch indexing → retrieval → Bedrock `converse` answer generation.
+- Model ID corrected to `qwen.qwen3-235b-a22b-2507-v1:0` (matching Python baseline).
+- Spring Boot does not auto-load `.env`; IDE launch command must set env vars explicitly.
+
 Active next step:
 
-- Exact Java smoke on port `8001` still requires a clean handoff window because the Python baseline process was already listening on that port during Task 12 verification on `2026-03-19`.
+- Rehearse frontend cutover using the migration checklist.
+- Test edge cases (multiple files, large PDFs, question history endpoints).

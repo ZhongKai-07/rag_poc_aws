@@ -1,191 +1,175 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides repository-wide guidance for Claude Code and other coding agents working in this workspace.
 
-## Project Overview
+## Current Project State
 
-This is a Retrieval-Augmented Generation (RAG) system built with OpenSearch and AWS Bedrock for PDF document processing and intelligent Q&A. The system extracts text from PDFs, stores vector embeddings in OpenSearch, and uses Bedrock LLMs to generate answers based on retrieved context.
+This repository is in a controlled migration from the legacy Python backend under `api/` to the Spring Boot backend under `backend-java/`.
 
-**Architecture:**
-- **Frontend:** React + TypeScript + Vite (port 8080)
-- **Backend:** Python + FastAPI (port 8001)
-- **Vector DB:** AWS OpenSearch Service (kNN vector search)
-- **LLM/Embeddings:** AWS Bedrock (Titan Embeddings, Qwen/Claude LLM)
-- **PDF Processing:** PyPDF2 (Windows compatible, with Docling fallback)
+- Frontend contract must stay unchanged.
+- The Python backend remains the baseline and rollback target.
+- The Java backend is the migration target and now covers the required layered architecture and frontend-facing endpoints.
+- Current migration status:
+  - Tasks 1-12 are complete. Post-migration runtime fixes applied on `2026-03-21`.
+  - Java backend runs on port `8001`, `/health` verified, S3/BDA/OpenSearch/Bedrock all connected.
+  - Answer model: `qwen.qwen3-235b-a22b-2507-v1:0` in `us-west-2` (matching Python baseline).
+  - Frontend requires `frontend/.env` with `VITE_API_BASE_URL=http://localhost:8001`.
+  - PostgreSQL and OpenSearch cleared on `2026-03-22`. Clean state for re-upload.
+  - End-to-end RAG pipeline verified on `2026-03-22`: upload → parsing → indexing → retrieval → answer generation all working.
+  - Code stability audit completed `2026-03-22`: all 4 critical issues (C1–C4) fixed, 42 tests pass. See `docs/ccodeReview/code-review-2026-03-22.md`.
+  - Next steps: (a) BDA observability implementation; (b) rehearse frontend cutover.
+- Do not treat this repository as "Python-only" anymore.
+- Do not treat the Java backend as fully cut over yet.
 
-**AWS Regional Architecture:**
-- OpenSearch: ap-east-1 (Hong Kong)
-- Bedrock: ap-northeast-1 (Tokyo) - better model availability
-- Optional Textract: us-east-1 (Virginia)
+## Mandatory Source Of Truth
 
-## Development Commands
+Read these first before making migration-related changes:
 
-### Backend (api/)
+- `Prompt.md`
+- `Plan.md`
+- `Implement.md`
+- `Documentation.md`
+- `docs/superpowers/plans/2026-03-19-springboot-rag-migration-layered-plan.md`
+- `docs/superpowers/plans/2026-03-19-migration-cutover-checklist.md`
+- `docs/superpowers/plans/2026-03-23-bda-observability.md`
+- `backend-java/README.md`
+
+Use them as the execution truth for scope, status, verification, and cutover readiness.
+
+Interpretation rules:
+
+- `Plan.md` plus the referenced migration plan are the execution source of truth.
+- `Prompt.md` defines the migration goal and hard constraints.
+- `Implement.md` defines milestone workflow and verification discipline.
+- `Documentation.md` records decisions, progress, and the next recommended step.
+- The cutover checklist governs frontend/traffic switching from `api/` to `backend-java/`.
+- `docs/ccodeReview/code-review-2026-03-22.md` is the post-E2E code stability audit. All critical issues C1–C4 are resolved; remaining items are non-blocking.
+
+## Repository Layout
+
+- `frontend/`
+  - React + TypeScript + Vite frontend.
+  - Keep the frontend contract unchanged unless the user explicitly asks otherwise.
+- `api/`
+  - Legacy FastAPI baseline.
+  - Primary role: behavioral reference, rollback path, and parity oracle.
+  - Important runtime traits:
+    - serves the frontend-facing API on port `8001`
+    - persists processed file mappings in `processed_files.txt`
+    - stores question history in `question_history/`
+    - uses Python-compatible index naming `md5(filename)[:8]`
+- `backend-java/`
+  - Spring Boot migration target.
+  - Required layered boundaries:
+    - `api`
+    - `application`
+    - `domain`
+    - `infrastructure`
+  - The Java backend must preserve the existing frontend contract and Python-compatible retrieval/index behavior.
+
+## Backend Responsibilities During Migration
+
+### `api/` baseline rules
+
+- Preserve the Python backend unless the user explicitly requests a Python-side change.
+- Prefer reading `api/` to understand baseline behavior, payloads, naming, and fallback semantics.
+- Do not casually refactor `api/` during Java migration work.
+- If Java behavior is unclear, verify against `api/` before redesigning anything.
+
+### `backend-java/` active development rules
+
+- Default location for migration implementation work is `backend-java/`.
+- Preserve these frontend-facing endpoints:
+  - `POST /upload_files`
+  - `POST /rag_answer`
+  - `GET /processed_files`
+  - `GET /get_index/{filename}`
+  - `GET /top_questions/{index_name}`
+  - `GET /top_questions_multi`
+  - `GET /health`
+- Preserve Python-compatible index naming and OpenSearch field names:
+  - index name: `md5(filename)[:8]`
+  - fields: `sentence_vector`, `paragraph`, `sentence`, `metadata.*`
+- Keep AWS/OpenSearch/S3/BDA/PostgreSQL concerns out of `domain/`.
+
+## Important Runtime Facts
+
+- **Spring Boot does NOT auto-load `.env` files.** The IDE launch command must explicitly export all required env vars (`BEDROCK_REGION=us-west-2`, `RAG_ANSWER_MODEL_ID`, `S3_DOCUMENT_BUCKET`). The `.env` file is a reference template only.
+- Both backends use port `8001`; only one can run at a time.
+- Java target is temporarily `17`.
+- Maven repo override: `-Dmaven.repo.local=$env:USERPROFILE\.m2\repository`
+- Frontend dev server: `localhost:8080`. Requires `frontend/.env` and backend CORS (`CorsConfig.java`).
+- Answer model default is `qwen.qwen3-235b-a22b-2507-v1:0` in `us-west-2`. `BedrockAnswerGenerationAdapter` uses the `converse` API (not `invokeModel` — third-party models only support `converse`).
+- Model IDs are configurable via env vars: `RAG_ANSWER_MODEL_ID`, `RAG_EMBEDDING_MODEL_ID`, `RAG_RERANK_MODEL_ID`. Defaults are set in both `application.yml` and `RagProperties.java` so the backend works even if `.env` is not loaded.
+- IDE/terminal startup may not load `backend-java/.env` automatically. Verify env vars are present in the process (check startup log line 1).
+- `ensureIndex()` auto-detects and handles missing/invalid/valid index mapping via single GET /_mapping call.
+- Use `bash backend-java/diagnose-aws.sh` to verify AWS connectivity.
+
+## Storage And Parsing Reality
+
+Do not rely on outdated assumptions from older Python-only docs.
+
+- Python `api/` upload flow stores incoming files locally and processes them directly.
+- Current Java runtime path uses S3-backed document storage for uploaded source files.
+- Java BDA parsing expects S3-backed storage/output configuration.
+- For `backend-java/`, treat these configuration areas as active:
+  - PostgreSQL
+  - OpenSearch
+  - Bedrock
+  - BDA
+  - S3 document storage and BDA output prefixes
+
+## Verification Discipline
+
+Never mark migration work complete without running the verification command appropriate to the touched milestone.
+
+Common commands:
+
+```powershell
+# PowerShell:
+mvn -f backend-java/pom.xml "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" test
+mvn -f backend-java/pom.xml "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" spring-boot:run
+```
 
 ```bash
-cd api
-
-# Create and activate virtual environment (Windows)
-python -m venv venv
-venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run development server
-python api.py
-# Server starts at http://localhost:8001
-
-# Health check
+# Bash:
+mvn -f backend-java/pom.xml "-Dmaven.repo.local=$HOME/.m2/repository" test
+mvn -f backend-java/pom.xml "-Dmaven.repo.local=$HOME/.m2/repository" spring-boot:run
 curl http://localhost:8001/health
+bash backend-java/diagnose-aws.sh
 ```
 
-### Frontend (frontend/)
+## Documentation Maintenance Rule
 
-```bash
-cd frontend
+When migration status, decisions, constraints, or next steps change, update these documents together:
 
-# Install dependencies
-npm install
+- `Prompt.md`
+- `Plan.md`
+- `Implement.md`
+- `Documentation.md`
 
-# Create environment file
-echo "VITE_API_BASE_URL=http://localhost:8001" > .env
+Do not let `CLAUDE.md` drift back to an outdated Python-only description.
 
-# Run development server
-npm run dev
-# Server starts at http://localhost:8080
+## Safety And Hygiene
 
-# Build for production
-npm run build
-# Output in dist/ directory
-```
+- Do not delete or break the Python backend during migration.
+- Do not modify the React frontend to accommodate backend contract drift unless the user explicitly changes requirements.
+- Do not commit `backend-java/target/`.
+- Treat local credential-bearing files and environment examples as sensitive; never copy secrets into docs, commits, or responses.
+- The worktree may be dirty. Do not revert unrelated user changes.
 
-## Configuration
+## Recommended Default Workflow
 
-### Backend Configuration (api/config.py)
+For migration work in this repo:
 
-Key settings that must be configured:
+1. Read the root control docs first.
+2. Determine whether the task belongs to `api/` baseline reference, `backend-java/` implementation, or cutover validation.
+3. Preserve frontend contract and Python parity.
+4. Run the smallest relevant verification command.
+5. Update the root migration documents if status or guidance changed.
 
-```python
-# OpenSearch Configuration
-OPENSEARCH_HOST = "search-xxx.ap-east-1.es.amazonaws.com"
-OPENSEARCH_USERNAME = "admin"
-OPENSEARCH_PASSWORD = "your-password"
+## Mental Model
 
-# Bedrock Configuration
-REGION_NAME = "ap-northeast-1"  # Tokyo for Bedrock models
-LLM_MODEL_NAME = "anthropic.claude-3-sonnet-20240229-v1:0"
-EMBEDDING_MODEL_NAME = "amazon.titan-embed-text-v1"
-```
-
-### Environment Variables
-
-```bash
-# Windows PowerShell
-$env:AWS_ACCESS_KEY_ID="your-key"
-$env:AWS_SECRET_ACCESS_KEY="your-secret"
-$env:AWS_DEFAULT_REGION="ap-northeast-1"
-```
-
-## Code Architecture
-
-### Document Processing Pipeline
-
-**File:** `api/document_processing.py`
-
-The system uses a dual-parser approach for Windows compatibility:
-1. **Primary:** PyPDF2 (Windows-safe, pure Python)
-2. **Fallback:** Docling (if available, better formatting)
-
-Processing flow:
-1. PDF uploaded to `./documents/{timestamp}/`
-2. Text extracted page-by-page
-3. Content split into chunks using RecursiveCharacterTextSplitter
-4. Embeddings generated via Bedrock Titan
-5. Vectors stored in OpenSearch with metadata
-
-### Vector Search Flow
-
-**Files:** `api/opensearch_search.py`, `api/RAG_System.py`
-
-1. Query converted to embedding via Titan
-2. kNN similarity search in OpenSearch
-3. Optional reranking via Bedrock Rerank
-4. Top-K chunks retrieved with scores
-5. Context formatted for LLM
-6. Answer generated via Bedrock LLM
-
-### Key Data Structures
-
-**OpenSearch Index Mapping:**
-- `sentence_vector`: kNN vector field (1536 dims for Titan)
-- `paragraph`: Raw text content
-- `metadata`: Source file, chunk ID, etc.
-- `image_base64`: Optional image data (not currently used)
-
-**API Request/Response:**
-- Upload: `POST /upload_files` (multipart/form-data)
-- Query: `POST /rag_answer` with index_names, query, search parameters
-- Files list: `GET /processed_files`
-
-## Common Issues
-
-### Windows-Specific Issues
-
-1. **Docling fails with resource file errors**
-   - Already handled: System auto-falls back to PyPDF2
-   - Error: `filename does not exists: .../glyphs//standard/additional.dat`
-
-2. **Python path issues in PowerShell**
-   - Use explicit path: `venv\Scripts\python.exe api.py`
-   - Not just: `python api.py`
-
-### Configuration Issues
-
-1. **AWS Region mismatch**
-   - Bedrock models may not be available in all regions
-   - Check model availability in target region
-
-2. **OpenSearch connection fails**
-   - Verify security group allows your IP on 443
-   - Check credentials in config.py
-   - For VPC-only OpenSearch, must deploy to EC2 in same VPC
-
-## Testing the System
-
-1. **Upload PDF:**
-   - Go to http://localhost:8080
-   - Select PDF file (text-based works best)
-   - Wait for processing completion
-
-2. **Verify processing:**
-   - Check `api/processed_files.txt` for entry
-   - Or call: `curl http://localhost:8001/processed_files`
-
-3. **Test Q&A:**
-   - Go to Q&A page
-   - Select processed document
-   - Ask question related to document content
-
-## Deployment Notes
-
-See `docs/deployment.md` for full AWS deployment guide.
-
-Quick production checklist:
-- [ ] OpenSearch domain created (ap-east-1 recommended)
-- [ ] Bedrock model access enabled (ap-northeast-1)
-- [ ] IAM role with bedrock:InvokeModel and es:ESHttp* permissions
-- [ ] EC2 instance in same VPC as OpenSearch (if VPC access)
-- [ ] Security groups configured (22 for SSH, 8080 for frontend)
-- [ ] config.py updated with production endpoints
-- [ ] frontend/.env pointing to production backend
-
-## File Locations
-
-Critical files to know:
-- `api/config.py` - All service configuration
-- `api/document_processing.py` - PDF parsing logic
-- `api/RAG_System.py` - Main RAG orchestration
-- `frontend/src/pages/Upload.tsx` - File upload UI
-- `frontend/src/pages/QA.tsx` - Question answering UI
-- `api/processed_files.txt` - Tracks processed PDFs with index mappings
+- Python `api/` is the legacy baseline and rollback target.
+- `backend-java/` is the nearly completed Spring Boot replacement, now runtime-verified.
+- The repository is in cutover-readiness mode, not greenfield development.

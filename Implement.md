@@ -59,3 +59,10 @@ For every milestone:
 - Task 10 moved API DTO mapping fully back into controllers; the remaining startup gap is now about production bean wiring and local storage support, not placeholder application contracts.
 - Task 12 excludes Spring AI Bedrock auto-config classes only in `application-test.yml` so the Maven test suite can run without creating extra Bedrock event loops in this Windows environment.
 - Exact Java smoke on port `8001` must be run only when the Python baseline is not already bound to that port.
+- `BedrockAnswerGenerationAdapter` uses the `converse` API, not `invokeModel`. Third-party models (Qwen, etc.) only support `converse`; `invokeModel` returns "model identifier is invalid". The `converse` API uses a unified format for all models — no provider-specific payload handling needed.
+- The frontend Vite dev server runs on a different port (8080) from the Java backend (8001), so CORS configuration is required. `CorsConfig.java` must remain in place for cross-origin frontend-backend communication.
+- The frontend requires `frontend/.env` with `VITE_API_BASE_URL=http://localhost:8001`. Without this file, Vite env variables resolve to `undefined` and API requests fail silently.
+- OpenSearch indices created without explicit KNN mapping will have `sentence_vector` auto-inferred as `float`, which breaks KNN queries. `ensureIndex()` now auto-detects and recreates indices with bad mapping.
+- Use `backend-java/diagnose-aws.sh` to verify AWS service connectivity before debugging runtime failures.
+- In OpenSearch error handling, `ResponseException` extends `IOException`. Always catch `ResponseException` separately and check status codes before falling through to generic `IOException` handlers.
+- `ensureIndex()` uses `GET /_mapping` as the single source of truth for index existence and mapping validation. Do not use a HEAD+GET two-step approach — the OpenSearch REST client over HTTP/2 can return inconsistent results between HEAD and subsequent GET requests for the same index. DELETE operations must tolerate 404 (index already gone).

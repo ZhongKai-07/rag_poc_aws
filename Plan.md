@@ -120,7 +120,7 @@ This file is the execution overlay for current status, milestone boundaries, ver
      - `mvn -f backend-java/pom.xml -q "-Dspring.profiles.active=test" "-Dtest=RequestCorrelationFilterTest" test`
 
 12. Regression and cutover readiness
-   - Status: completed except exact-port smoke verification
+   - Status: completed
    - Acceptance:
       - regression tests pass
       - full suite passes
@@ -169,4 +169,21 @@ After every milestone, update:
   - `IngestionRegressionTest` now locks Python-compatible duplicate upload skipping for already completed files.
   - `application-test.yml` now excludes Spring AI Bedrock auto-config classes so the full Maven suite can run in this environment without creating extra Bedrock event loops.
   - On `2026-03-19`, exact smoke verification on `http://localhost:8001/health` was blocked because the Python baseline process (`python.exe` PID `42828`) was already listening on port `8001`.
+  - On `2026-03-20`, exact smoke verification on `http://localhost:8001/health` was completed from a Java process launched with `backend-java/.env` after port `8001` was available.
+  - On `2026-03-20`, live AWS verification showed that BDA success can resolve to `job_metadata.json`; the Java client now follows `output_metadata[].segment_metadata[].standard_output_path`, which restored real parsing for the representative PDF and allowed OpenSearch writes into index `ced4c5ef`.
+  - The current live blocker is no longer exact-port smoke or OpenSearch `401`; it is Bedrock answer-generation access for the configured Anthropic model in the active region/account context.
 - `backend-java/target/` must stay ignored and must not be committed.
+- On `2026-03-21`, the Bedrock answer model blocker was resolved by switching from `anthropic.claude-3-5-sonnet-20240620-v1:0` to `qwen.qwen3-235b-a22b-2507-v1:0` (matching the Python baseline's working model). `BEDROCK_REGION` changed to `us-west-2`. `BedrockAnswerGenerationAdapter` updated to support both Anthropic and OpenAI-compatible payload formats.
+- On `2026-03-21`, model IDs were externalized to `application.yml` via `RAG_ANSWER_MODEL_ID`, `RAG_EMBEDDING_MODEL_ID`, `RAG_RERANK_MODEL_ID` environment variables so future model changes only require `.env` edits.
+- On `2026-03-21`, frontend upload "Upload Failed" was diagnosed as a missing CORS configuration. The Java backend had no CORS headers, so the browser blocked cross-origin requests from `localhost:8080` (Vite) to `localhost:8001` (backend) before they reached the server. `CorsConfig.java` was added mirroring the Python baseline's `allow_origins=["*"]` policy.
+- On `2026-03-21`, frontend upload also required creating `frontend/.env` with `VITE_API_BASE_URL=http://localhost:8001`. Only `.env.example` existed; without `.env`, the Vite env variable was `undefined` and `fetch` targeted `undefined/upload_files`.
+- On `2026-03-21`, RAG query against index `4c408463` failed with `Field 'sentence_vector' is not knn_vector type`. Root cause: the index was created (likely by Python baseline) without explicit KNN mapping, so OpenSearch auto-inferred `sentence_vector` as `float`. Java's `ensureIndex()` skips creation if the index already exists, so the bad mapping persisted. Fix: deleted index `4c408463` via OpenSearch REST API; re-upload will recreate with correct `knn_vector` mapping from `OpenSearchIndexManager.buildIndexMapping()`.
+- On `2026-03-21`, added `backend-java/diagnose-aws.sh` diagnostic script covering: env vars, `/health`, OpenSearch cluster, S3 bucket, Bedrock model invoke, PostgreSQL TCP, and frontend `.env` checks.
+- On `2026-03-21`, fixed `OpenSearchIndexManager.hasKnnVectorMapping()` returning `true` on error (`ResponseException` caught as `IOException`). Changed to return `false` so indices with bad mapping are deleted and recreated. Removed redundant `ensureIndex()` in `OpenSearchDocumentWriter.writeChunks()`. Added diagnostic logging to `ensureIndex()` and `createIndex()`.
+- On `2026-03-21`, rewritten `ensureIndex()` to eliminate HEAD+GET two-step inconsistency. The OpenSearch REST client over HTTP/2 returned 200 for HEAD but 404 for GET /_mapping on the same index, causing DELETE to fail with 404. New approach: `checkMappingStatus()` uses GET /_mapping as single source of truth returning 3-state enum (`VALID`/`INVALID`/`NOT_FOUND`). `deleteIndexIfExists()` tolerates 404 on DELETE. All 42 tests pass.
+- On `2026-03-22`, `BedrockAnswerGenerationAdapter` switched from `invokeModel` to `converse` API because third-party models (Qwen) only support `converse`. This also eliminated the Anthropic/OpenAI dual-format handling and the `ObjectMapper` dependency.
+- On `2026-03-22`, answer model default changed to `qwen.qwen3-235b-a22b-2507-v1:0` and `BEDROCK_REGION` default changed to `us-west-2` in `application.yml` and `RagProperties.java`. Root cause: IDE startup configuration was not loading `.env` variables, so the backend fell back to stale hardcoded defaults.
+- On `2026-03-22`, PostgreSQL and OpenSearch data fully cleared for a clean restart. All user indices gone; all three PG tables at 0 rows.
+- On `2026-03-22`, model ID corrected from `qwen.qwen3-vl-235b-a22b` (invalid, extra `-vl` suffix, missing version) to `qwen.qwen3-235b-a22b-2507-v1:0` (matching Python baseline `api/llm_processor.py`). `.env` `BEDROCK_REGION` also corrected from `us-west-1` to `us-west-2`.
+- On `2026-03-22`, confirmed Spring Boot does not auto-load `.env` files — env vars must be set via IDE launch config or shell. The `.env` file is a reference template only.
+- On `2026-03-22`, **end-to-end RAG pipeline verified**: upload → BDA parsing → OpenSearch indexing → retrieval → Bedrock `converse` answer generation all working. Migration is functionally complete.
