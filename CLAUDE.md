@@ -25,10 +25,10 @@ This repository is in a controlled migration from the legacy Python backend unde
 
 Read these first before making migration-related changes:
 
-- `Prompt.md`
-- `Plan.md`
-- `Implement.md`
-- `Documentation.md`
+- `control/Prompt.md`
+- `control/Plan.md`
+- `control/Implement.md`
+- `control/Documentation.md`
 - `docs/superpowers/plans/2026-03-19-springboot-rag-migration-layered-plan.md`
 - `docs/superpowers/plans/2026-03-19-migration-cutover-checklist.md`
 - `docs/superpowers/plans/2026-03-23-bda-observability.md`
@@ -38,10 +38,10 @@ Use them as the execution truth for scope, status, verification, and cutover rea
 
 Interpretation rules:
 
-- `Plan.md` plus the referenced migration plan are the execution source of truth.
-- `Prompt.md` defines the migration goal and hard constraints.
-- `Implement.md` defines milestone workflow and verification discipline.
-- `Documentation.md` records decisions, progress, and the next recommended step.
+- `control/Plan.md` plus the referenced migration plan are the execution source of truth.
+- `control/Prompt.md` defines the migration goal and hard constraints.
+- `control/Implement.md` defines milestone workflow and verification discipline.
+- `control/Documentation.md` records decisions, progress, and the next recommended step.
 - The cutover checklist governs frontend/traffic switching from `api/` to `backend-java/`.
 - `docs/ccodeReview/code-review-2026-03-22.md` is the post-E2E code stability audit. All critical issues C1–C4 are resolved; remaining items are non-blocking.
 
@@ -143,10 +143,10 @@ bash backend-java/diagnose-aws.sh
 
 When migration status, decisions, constraints, or next steps change, update these documents together:
 
-- `Prompt.md`
-- `Plan.md`
-- `Implement.md`
-- `Documentation.md`
+- `control/Prompt.md`
+- `control/Plan.md`
+- `control/Implement.md`
+- `control/Documentation.md`
 
 Do not let `CLAUDE.md` drift back to an outdated Python-only description.
 
@@ -162,7 +162,7 @@ Do not let `CLAUDE.md` drift back to an outdated Python-only description.
 
 For migration work in this repo:
 
-1. Read the root control docs first.
+1. Read the `control/` docs first.
 2. Determine whether the task belongs to `api/` baseline reference, `backend-java/` implementation, or cutover validation.
 3. Preserve frontend contract and Python parity.
 4. Run the smallest relevant verification command.

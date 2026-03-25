@@ -12,6 +12,8 @@ __pycache__/
 # Environment variables
 .env
 api/config.py
+backend-java\.env
+backend-java\.env.example
 
 # VSCode/IDE
 .vscode/
@@ -21,7 +23,22 @@ api/config.py
 api/documents/
 api/question_history/
 logs/
+error_logs/
 
 # Maven build output
 backend-java/target/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# OS metadata
+.DS_Store
+**/.DS_Store
+
+# Test files
+test_pdf/
+
+# External tools / scratch workspaces
+.trae/
 
