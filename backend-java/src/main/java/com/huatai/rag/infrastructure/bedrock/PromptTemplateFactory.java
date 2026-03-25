@@ -6,7 +6,7 @@ import java.util.List;
 public class PromptTemplateFactory {
 
     public String buildSystemPrompt() {
-        return "你是一个证券专家，请根据相关文档回答用户的问题。";
+        return "你是一个证券公司的COB专家，请根据相关文档回答用户的问题。";
     }
 
     public String buildUserPrompt(String question) {

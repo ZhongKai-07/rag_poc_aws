@@ -35,12 +35,12 @@ public class BdaClient {
             InvocationStatus status = gateway.poll(invocationArn);
             if (status.isSuccess()) {
                 if (status.payload() != null) {
-                    return status.payload();
+                    return resolveResultPayload(status.payload());
                 }
                 String resolvedOutputUri = status.outputUri() == null || status.outputUri().isBlank()
                         ? outputUri
                         : status.outputUri();
-                return gateway.fetchOutput(resolvedOutputUri);
+                return resolveResultPayload(gateway.fetchOutput(resolvedOutputUri));
             }
             if (status.isFailure()) {
                 throw new IllegalStateException("BDA parsing failed: " + status.errorMessage());
@@ -48,6 +48,37 @@ public class BdaClient {
             sleepBeforeNextPoll(attempt);
         }
         throw new IllegalStateException("BDA parsing timed out after " + maxPollAttempts + " polls");
+    }
+
+    private JsonNode resolveResultPayload(JsonNode payload) {
+        String standardOutputUri = standardOutputUri(payload);
+        if (standardOutputUri == null || standardOutputUri.isBlank()) {
+            return payload;
+        }
+        return gateway.fetchOutput(standardOutputUri);
+    }
+
+    private String standardOutputUri(JsonNode payload) {
+        if (payload == null || !payload.isObject()) {
+            return null;
+        }
+        JsonNode outputsNode = payload.path("output_metadata");
+        if (!outputsNode.isArray()) {
+            return null;
+        }
+        for (JsonNode outputNode : outputsNode) {
+            JsonNode segmentsNode = outputNode.path("segment_metadata");
+            if (!segmentsNode.isArray()) {
+                continue;
+            }
+            for (JsonNode segmentNode : segmentsNode) {
+                String standardOutputPath = segmentNode.path("standard_output_path").asText("");
+                if (!standardOutputPath.isBlank()) {
+                    return standardOutputPath;
+                }
+            }
+        }
+        return null;
     }
 
     private void sleepBeforeNextPoll(int attempt) {

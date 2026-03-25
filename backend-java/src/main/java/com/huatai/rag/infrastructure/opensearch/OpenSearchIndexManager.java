@@ -9,9 +9,12 @@ import java.util.Map;
 import org.opensearch.client.Request;
 import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenSearchIndexManager {
 
+    private static final Logger log = LoggerFactory.getLogger(OpenSearchIndexManager.class);
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
@@ -44,28 +47,89 @@ public class OpenSearchIndexManager {
                 "mappings", Map.of("properties", properties));
     }
 
+    /**
+     * Ensures the index exists with correct knn_vector mapping.
+     * Uses GET /_mapping as the single source of truth for both existence and validation,
+     * avoiding HEAD+GET inconsistencies observed with the OpenSearch REST client over HTTP/2.
+     */
     public void ensureIndex(String indexName, int dimension) {
         if (restClient == null) {
             return;
         }
 
+        MappingStatus status = checkMappingStatus(indexName);
+
+        switch (status) {
+            case VALID:
+                log.info("Index {} exists with correct knn_vector mapping", indexName);
+                break;
+            case NOT_FOUND:
+                log.info("Index {} does not exist, creating with knn_vector mapping (dimension={})", indexName, dimension);
+                createIndex(indexName, dimension);
+                break;
+            case INVALID:
+                log.warn("Index {} exists but sentence_vector is not knn_vector — deleting and recreating", indexName);
+                deleteIndexIfExists(indexName);
+                createIndex(indexName, dimension);
+                break;
+        }
+    }
+
+    private enum MappingStatus { VALID, INVALID, NOT_FOUND }
+
+    private MappingStatus checkMappingStatus(String indexName) {
         try {
-            restClient.performRequest(new Request("HEAD", "/" + indexName));
+            var response = restClient.performRequest(new Request("GET", "/" + indexName + "/_mapping"));
+            Map<String, Object> body = objectMapper.readValue(
+                    response.getEntity().getContent(), new TypeReference<>() {});
+            @SuppressWarnings("unchecked")
+            Map<String, Object> indexBody = (Map<String, Object>) body.get(indexName);
+            if (indexBody == null) return MappingStatus.INVALID;
+            @SuppressWarnings("unchecked")
+            Map<String, Object> mappings = (Map<String, Object>) indexBody.get("mappings");
+            if (mappings == null) return MappingStatus.INVALID;
+            @SuppressWarnings("unchecked")
+            Map<String, Object> properties = (Map<String, Object>) mappings.get("properties");
+            if (properties == null) return MappingStatus.INVALID;
+            @SuppressWarnings("unchecked")
+            Map<String, Object> vectorField = (Map<String, Object>) properties.get("sentence_vector");
+            if (vectorField == null) return MappingStatus.INVALID;
+            return "knn_vector".equals(vectorField.get("type")) ? MappingStatus.VALID : MappingStatus.INVALID;
         } catch (ResponseException exception) {
-            if (exception.getResponse().getStatusLine().getStatusCode() != 404) {
-                throw new IllegalStateException("Failed to check OpenSearch index " + indexName, exception);
+            if (exception.getResponse().getStatusLine().getStatusCode() == 404) {
+                return MappingStatus.NOT_FOUND;
             }
-            createIndex(indexName, dimension);
+            log.warn("Unexpected error checking mapping for index {}, will recreate", indexName, exception);
+            return MappingStatus.NOT_FOUND;
         } catch (IOException exception) {
-            throw new IllegalStateException("Failed to check OpenSearch index " + indexName, exception);
+            log.warn("Could not verify mapping for index {}, will recreate", indexName, exception);
+            return MappingStatus.NOT_FOUND;
+        }
+    }
+
+    private void deleteIndexIfExists(String indexName) {
+        try {
+            restClient.performRequest(new Request("DELETE", "/" + indexName));
+            log.info("Deleted index {}", indexName);
+        } catch (ResponseException exception) {
+            if (exception.getResponse().getStatusLine().getStatusCode() == 404) {
+                log.info("Index {} already gone, skipping delete", indexName);
+            } else {
+                throw new IllegalStateException("Failed to delete OpenSearch index " + indexName, exception);
+            }
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to delete OpenSearch index " + indexName, exception);
         }
     }
 
     private void createIndex(String indexName, int dimension) {
         Request request = new Request("PUT", "/" + indexName);
         try {
-            request.setJsonEntity(objectMapper.writeValueAsString(buildIndexMapping(dimension)));
+            String mappingJson = objectMapper.writeValueAsString(buildIndexMapping(dimension));
+            log.info("Creating index {} with mapping: {}", indexName, mappingJson);
+            request.setJsonEntity(mappingJson);
             restClient.performRequest(request);
+            log.info("Index {} created successfully", indexName);
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to create OpenSearch index " + indexName, exception);
         }

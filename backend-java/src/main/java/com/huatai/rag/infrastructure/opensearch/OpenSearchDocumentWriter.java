@@ -31,7 +31,6 @@ public class OpenSearchDocumentWriter {
             return;
         }
 
-        indexManager.ensureIndex(indexName, embeddings.get(0).size());
         if (restClient == null) {
             return;
         }

@@ -61,7 +61,7 @@ public class ClientConfig {
             AwsProperties awsProperties,
             DefaultCredentialsProvider credentialsProvider) {
         return BedrockDataAutomationRuntimeClient.builder()
-                .region(Region.of(awsProperties.getBedrockRegion()))
+                .region(Region.of(awsProperties.getBdaRegion()))
                 .credentialsProvider(credentialsProvider)
                 .build();
     }

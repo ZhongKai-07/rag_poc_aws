@@ -16,7 +16,7 @@ public class DocumentFileEntity {
     @Id
     private UUID id;
 
-    @Column(name = "filename", nullable = false, length = 512)
+    @Column(name = "filename", nullable = false, unique = true, length = 512)
     private String filename;
 
     @Column(name = "index_name", nullable = false, unique = true, length = 128)

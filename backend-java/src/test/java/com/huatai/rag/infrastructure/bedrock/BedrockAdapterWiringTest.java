@@ -3,6 +3,7 @@ package com.huatai.rag.infrastructure.bedrock;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huatai.rag.infrastructure.config.AwsProperties;
 import com.huatai.rag.infrastructure.config.RagProperties;
 import com.huatai.rag.infrastructure.support.RetryUtils;
 import java.time.Duration;
@@ -21,17 +22,17 @@ class BedrockAdapterWiringTest {
         RagProperties ragProperties = new RagProperties();
         ragProperties.setRetryMaxAttempts(3);
         ragProperties.setRetryBackoff(Duration.ofMillis(10));
+        AwsProperties awsProperties = new AwsProperties();
         RetryUtils retryUtils = new RetryUtils();
         PromptTemplateFactory promptTemplateFactory = new PromptTemplateFactory();
 
         BedrockEmbeddingAdapter embeddingAdapter =
                 new BedrockEmbeddingAdapter(bedrockRuntimeClient, objectMapper, ragProperties, retryUtils);
         BedrockRerankAdapter rerankAdapter =
-                new BedrockRerankAdapter(bedrockAgentRuntimeClient, ragProperties, retryUtils);
+                new BedrockRerankAdapter(bedrockAgentRuntimeClient, ragProperties, awsProperties, retryUtils);
         BedrockAnswerGenerationAdapter answerAdapter =
                 new BedrockAnswerGenerationAdapter(
                         bedrockRuntimeClient,
-                        objectMapper,
                         ragProperties,
                         promptTemplateFactory,
                         retryUtils);

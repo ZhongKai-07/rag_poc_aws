@@ -3,13 +3,18 @@ spring:
     name: rag-backend-java
   profiles:
     default: local
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
   jpa:
     open-in-view: false
 
 huatai:
   aws:
-    region: ${AWS_DEFAULT_REGION:ap-northeast-1}
-    bedrock-region: ${BEDROCK_REGION:${AWS_DEFAULT_REGION:ap-northeast-1}}
+    region: ${AWS_DEFAULT_REGION:us-east-1}
+    bedrock-region: ${BEDROCK_REGION:us-west-2}
+    bda-region: ${BDA_REGION:${AWS_DEFAULT_REGION:us-east-1}}
     bda-project-arn: ${BDA_PROJECT_ARN:}
     bda-profile-arn: ${BDA_PROFILE_ARN:}
     bda-stage: ${BDA_STAGE:LIVE}
@@ -23,13 +28,19 @@ huatai:
     socket-timeout: 30s
   storage:
     document-root: ${DOCUMENT_ROOT:./documents}
+    document-bucket: ${S3_DOCUMENT_BUCKET:}
+    document-prefix: ${S3_DOCUMENT_PREFIX:}
+    bda-output-prefix: ${S3_BDA_OUTPUT_PREFIX:_bda_output}
   rag:
     vec-score-threshold: ${RAG_VEC_SCORE_THRESHOLD:0.0}
     text-score-threshold: ${RAG_TEXT_SCORE_THRESHOLD:0.0}
     rerank-score-threshold: ${RAG_RERANK_SCORE_THRESHOLD:0.5}
-    request-timeout: ${RAG_REQUEST_TIMEOUT:30s}
+    request-timeout: ${RAG_REQUEST_TIMEOUT:30s} 
     retry-max-attempts: ${RAG_RETRY_MAX_ATTEMPTS:3}
     retry-backoff: ${RAG_RETRY_BACKOFF:1s}
+    embedding-model-id: ${RAG_EMBEDDING_MODEL_ID:amazon.titan-embed-text-v1}
+    rerank-model-id: ${RAG_RERANK_MODEL_ID:cohere.rerank-v3-5:0}
+    answer-model-id: ${RAG_ANSWER_MODEL_ID:qwen.qwen3-235b-a22b-2507-v1:0}
 
 server:
   port: 8001

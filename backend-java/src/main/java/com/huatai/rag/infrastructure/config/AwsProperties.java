@@ -8,6 +8,7 @@ public class AwsProperties {
 
     private String region = "ap-northeast-1";
     private String bedrockRegion = "ap-northeast-1";
+    private String bdaRegion = "us-east-1";
     private String bdaProjectArn = "";
     private String bdaProfileArn = "";
     private String bdaStage = "LIVE";
@@ -28,6 +29,14 @@ public class AwsProperties {
 
     public void setBedrockRegion(String bedrockRegion) {
         this.bedrockRegion = bedrockRegion;
+    }
+
+    public String getBdaRegion() {
+        return bdaRegion;
+    }
+
+    public void setBdaRegion(String bdaRegion) {
+        this.bdaRegion = bdaRegion;
     }
 
     public String getBdaProjectArn() {

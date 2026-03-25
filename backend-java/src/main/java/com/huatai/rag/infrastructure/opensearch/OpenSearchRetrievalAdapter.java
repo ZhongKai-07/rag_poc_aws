@@ -13,7 +13,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.opensearch.client.Request;
+import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenSearchRetrievalAdapter implements RetrievalPort {
 
@@ -69,6 +72,7 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
     }
 
     private static final class RestClientSearchGateway implements SearchGateway {
+        private static final Logger log = LoggerFactory.getLogger(RestClientSearchGateway.class);
         private final RestClient restClient;
         private final ObjectMapper objectMapper;
         private final EmbeddingPort embeddingPort;
@@ -121,7 +125,14 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
                         new TypeReference<>() {
                         });
                 return parseHits(responseBody, scoreThreshold, vectorSearch);
+            } catch (ResponseException exception) {
+                log.error("OpenSearch search failed for {} with status {}",
+                        joinedIndices,
+                        exception.getResponse().getStatusLine().getStatusCode(),
+                        exception);
+                throw new IllegalStateException("Failed to execute OpenSearch search", exception);
             } catch (IOException exception) {
+                log.error("OpenSearch search I/O failure for {}", joinedIndices, exception);
                 throw new IllegalStateException("Failed to execute OpenSearch search", exception);
             }
         }
