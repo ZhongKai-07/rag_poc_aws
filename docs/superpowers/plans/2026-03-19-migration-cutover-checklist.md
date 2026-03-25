@@ -20,13 +20,16 @@ Use this checklist when switching the React frontend and operational traffic fro
 - [ ] `BEDROCK_REGION` if it differs from `AWS_DEFAULT_REGION`
 - [ ] `AWS_ACCESS_KEY_ID`
 - [ ] `AWS_SECRET_ACCESS_KEY`
+- [ ] `AWS_SESSION_TOKEN` when temporary credentials are used
 - [ ] `OPENSEARCH_ENDPOINT`
 - [ ] `OPENSEARCH_USERNAME`
 - [ ] `OPENSEARCH_PASSWORD`
+- [ ] `S3_DOCUMENT_BUCKET`
+- [ ] `S3_DOCUMENT_PREFIX` if a shared upload prefix is required
+- [ ] `S3_BDA_OUTPUT_PREFIX` if the default `_bda_output` prefix is overridden
 - [ ] `BDA_PROJECT_ARN`
 - [ ] `BDA_PROFILE_ARN`
 - [ ] `BDA_STAGE`
-- [ ] `DOCUMENT_ROOT`
 - [ ] Any non-default RAG thresholds required by the target environment:
   - `RAG_VEC_SCORE_THRESHOLD`
   - `RAG_TEXT_SCORE_THRESHOLD`
@@ -36,13 +39,15 @@ Use this checklist when switching the React frontend and operational traffic fro
 
 - [ ] Run Flyway migrations in the target database and confirm schema version is current.
 - [ ] Verify PostgreSQL connectivity from the Java runtime environment.
+- [ ] Verify S3 write access for uploaded source documents in the configured document bucket/prefix.
+- [ ] Verify S3 read access for BDA output objects in the configured output prefix.
 - [ ] Verify OpenSearch connectivity and credentials with the target cluster.
 - [ ] Verify Bedrock runtime access for:
   - embeddings
   - rerank
   - answer generation
 - [ ] Verify BDA project/profile access and parsing completion on at least one representative PDF.
-- [ ] Confirm local or shared storage path exists and is writable for uploaded documents.
+- [ ] Confirm the configured S3 bucket and prefixes match the target environment's retention and IAM policy.
 
 ## Application Verification
 

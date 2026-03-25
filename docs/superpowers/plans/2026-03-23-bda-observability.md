@@ -97,6 +97,7 @@ mvn -f backend-java/pom.xml compile -q 2>&1 | grep "error:"
 ```
 
 预期：**两处均报构造器参数错误**：
+
 1. `BdaResultMapper.java`：`new ParsedDocument(...)` 仍传 6 参数，第 6 参数 `parserProvenance(payload)` 已无对应 record 组件
 2. `DocumentIngestionApplicationServiceTest.java`：同样以 6 参数构造 `ParsedDocument`，8 参数 record 不匹配
 
@@ -868,7 +869,7 @@ static class FakeBdaParseResultPort implements com.huatai.rag.domain.bda.BdaPars
 }
 ```
 
-2. 在主测试方法中，构造 `Default` 时传入第 6 参数，并新增断言：
+1. 在主测试方法中，构造 `Default` 时传入第 6 参数，并新增断言：
 
 > **重要前置说明：** 测试中的 `FakeParser.parse()` 直接返回构造器传入的 `parsedDocument` 实例（见测试类 `FakeParser` 内部类：`return parsedDocument;`）。Task 1 Step 4 已将该实例的 `s3OutputPath` 设置为 `"s3://huatai-rag/_bda_output/2374dcf7.json"`。因此，service 调用 `parser.parse()` 后拿到的 `parsedDocument.s3OutputPath()` 正是这个值，后续 `bdaParseResultPort.save()` 中写入的 `s3OutputPath` 断言才能成立。
 
@@ -1555,7 +1556,7 @@ import AdminPage from "./pages/AdminPage";
 
 分两个子步骤，防止遗漏：
 
-**(a) 在现有 lucide-react import 中新增 `Settings`：**
+**(a) 在现有 lucide-react import 中新增** **`Settings`：**
 
 ```tsx
 // 将当前第 3 行:
@@ -1564,7 +1565,7 @@ import { Home, Upload, MessageSquare, Moon, Sun } from "lucide-react";
 import { Home, Upload, MessageSquare, Moon, Sun, Settings } from "lucide-react";
 ```
 
-**(b) 在 `navItems` 数组定义之后新增 `allNavItems`，并将渲染循环改用 `allNavItems`：**
+**(b) 在** **`navItems`** **数组定义之后新增** **`allNavItems`，并将渲染循环改用** **`allNavItems`：**
 
 ```tsx
 // 在 navItems 定义之后添加
