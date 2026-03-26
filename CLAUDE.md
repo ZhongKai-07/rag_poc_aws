@@ -18,6 +18,7 @@ This repository is in a controlled migration from the legacy Python backend unde
   - End-to-end RAG pipeline verified on `2026-03-22`: upload → parsing → indexing → retrieval → answer generation all working.
   - Code stability audit completed `2026-03-22`: all 4 critical issues (C1–C4) fixed, 42 tests pass. See `docs/ccodeReview/code-review-2026-03-22.md`.
   - Next steps: (a) BDA observability implementation; (b) rehearse frontend cutover.
+  - **Active work**: docling-java integration — adding docling as alternative document parser alongside BDA. See `control/docling/` for control documents.
 - Do not treat this repository as "Python-only" anymore.
 - Do not treat the Java backend as fully cut over yet.
 
@@ -35,6 +36,13 @@ Read these first before making migration-related changes:
 - `backend-java/README.md`
 
 Use them as the execution truth for scope, status, verification, and cutover readiness.
+
+For docling-java integration work, read these first:
+
+- `control/docling/Prompt.md`
+- `control/docling/Plan.md`
+- `control/docling/Implement.md`
+- `control/docling/Documentation.md`
 
 Interpretation rules:
 
