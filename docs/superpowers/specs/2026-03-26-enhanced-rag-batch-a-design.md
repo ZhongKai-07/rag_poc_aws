@@ -316,11 +316,13 @@ Citations require `filename`, `page_number`, and `section_path` from `RetrievedD
 |-------|-------------------|--------|
 | `metadata.filename` | **No** — not in current OpenSearch mapping | Must be added: written during `OpenSearchDocumentWriter.writeChunks()` from `DocumentFileRecord.filename` |
 | `metadata.page_number` | **Yes** — `ParsedChunk.pageNumber()` is written to metadata during indexing | Available |
-| `metadata.section_path` | **Yes** — `ParsedChunk.sectionPath()` is written to metadata during indexing | Available |
+| `metadata.section_path` | **Yes** — `ParsedChunk.sectionPath()` is written to metadata during indexing | Available. Note: stored as `List<String>` (hierarchical path). `CitationAssemblyService` joins with `/` separator to produce a display string (e.g., `"第三章/KYC审查"`). |
 
 **Required ingestion change:** Add `filename` to the metadata map in `OpenSearchDocumentWriter` when building the bulk index payload. This is a one-line addition. Existing indexed documents will lack this field — they need re-indexing, or the citation module falls back to the index name (which is an MD5 hash, less readable).
 
-This ingestion change is added to the Modified Files list in Section 6.
+This ingestion change is added to the Modified Files list in Section 7.
+
+**Relationship to existing `ContextAssemblyService`:** The existing `ContextAssemblyService.selectSourceDocuments()` continues to be called to pick which documents are shown as `source_documents` in the response. `CitationAssemblyService` operates on the reranked document list (same input) but owns the formatting for the LLM prompt. They are complementary: `ContextAssemblyService` selects for the API response, `CitationAssemblyService` formats for the LLM. No changes to `ContextAssemblyService` are needed.
 
 ### 4.4 Prompt Template (Revised)
 
@@ -599,8 +601,10 @@ Estimated: ~15-20 new test methods. All run as part of the standard `mvn test` s
 | domain | `StructuredQuery.java` | Collateral triple value object |
 | domain | `Citation.java` | Citation value object |
 | domain | `CitedAnswer.java` | Answer with citations value object |
+| domain/retrieval | `RetrievalRequest.java` | Retrieval parameters value object with metadataFilters |
 | application | `QueryRewriteRouter.java` | Strategy registry + routing |
 | application | `CitationAssemblyService.java` | Citation assembly + response parsing |
+| application | `PromptWithCitations.java` | Assembled prompt context + citation map value object |
 | infrastructure | `CobKeywordRewriteStrategy.java` | COB keyword extraction via Bedrock |
 | infrastructure | `CollateralStructuredRewriteStrategy.java` | Collateral triple parsing via Bedrock |
 | evaluation/model | `TraceRecord.java` | Pipeline trace data |
