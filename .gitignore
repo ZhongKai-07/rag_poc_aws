@@ -12,8 +12,9 @@ __pycache__/
 # Environment variables
 .env
 api/config.py
-backend-java\.env
-backend-java\.env.example
+backend-java/.env
+backend-java/.env.example
+backend-java/src/main/resources/aws_config.txt
 
 # VSCode/IDE
 .vscode/
