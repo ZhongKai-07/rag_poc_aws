@@ -80,6 +80,8 @@ public record StructuredQuery(
 ) {}
 ```
 
+**LLM dependency for rewrite strategies:** The infrastructure rewrite adapters (`CobKeywordRewriteStrategy`, `CollateralStructuredRewriteStrategy`) directly use `BedrockRuntimeClient` internally — same pattern as the existing `BedrockAnswerGenerationAdapter`. This is a deliberate decision: rewrite strategies are infrastructure classes, so direct SDK usage is acceptable. No new domain-level LLM port is introduced to avoid over-abstraction for what is a single structured-JSON-output call per strategy.
+
 ### 3.3 Application Layer
 
 ```java
@@ -152,7 +154,19 @@ Agreement metadata (counterparty, agreement type) is required for effective filt
 
 Metadata is stored in OpenSearch document `metadata` fields and used for pre-filtering during Collateral retrieval.
 
-### 3.7 Pipeline Integration Point
+### 3.7 Module Value Mapping and Frontend Compatibility
+
+The current `RagRequest.module` defaults to `"RAG"`. The mapping rules are:
+
+| Frontend sends | Strategy selected | Rationale |
+|----------------|-------------------|-----------|
+| `"cob"` | `CobKeywordRewriteStrategy` | Explicit COB scene |
+| `"collateral"` | `CollateralStructuredRewriteStrategy` | Explicit Collateral scene |
+| `"RAG"` or null or any other value | `CobKeywordRewriteStrategy` (default) | Backward compatible — existing frontend sends `"RAG"`, treated as COB |
+
+**Frontend contract is unchanged.** The `module` field already exists in `RagRequest`; the backend now uses it for routing but does not require the frontend to change. COB is the safe default because keyword extraction + rewrite is a strict improvement over raw query for any scene. Collateral structured parsing is only activated when explicitly requested.
+
+### 3.8 Pipeline Integration Point
 
 In `RagQueryApplicationService.handle()`, insert before retrieval:
 
@@ -161,11 +175,71 @@ Before: query → retrieve(query) → rerank → generate
 After:  query → queryRewriteRouter.rewrite(query, module) → retrieve(rewriteResult) → rerank → generate
 ```
 
-`RetrievalPort` interface extended to accept optional metadata filter parameters for Collateral structured queries.
+### 3.9 RetrievalPort Signature Change
 
-### 3.8 Model Selection for Rewriting
+The current `RetrievalPort.retrieve()` has 7 parameters. To support Collateral metadata filtering, introduce a `RetrievalRequest` value object instead of adding more parameters:
+
+```java
+// domain/retrieval/RetrievalRequest.java
+public record RetrievalRequest(
+    String query,                           // rewritten query text
+    List<String> indexNames,
+    int vecDocsNum,
+    int txtDocsNum,
+    double vecScoreThreshold,
+    double textScoreThreshold,
+    String searchMethod,
+    Map<String, String> metadataFilters     // nullable, Collateral only
+) {}
+```
+
+- COB path: passes `metadataFilters = null` → existing KNN/BM25 behavior unchanged
+- Collateral path: passes `metadataFilters = {"counterparty": "HSBC", "agreement_type": "ISDA_CSA"}` → OpenSearch adds `bool` filter wrapping the KNN query
+
+**OpenSearch query structure for metadata filter:**
+
+```json
+{
+    "query": {
+        "bool": {
+            "must": [
+                { "knn": { "sentence_vector": { "vector": [...], "k": 5 } } }
+            ],
+            "filter": [
+                { "term": { "metadata.counterparty": "HSBC" } },
+                { "term": { "metadata.agreement_type": "ISDA_CSA" } }
+            ]
+        }
+    }
+}
+```
+
+This is a well-supported OpenSearch pattern. The `OpenSearchRetrievalAdapter` builds the `bool` wrapper conditionally only when `metadataFilters` is non-null.
+
+### 3.10 Model Selection for Rewriting
 
 Use a lightweight model (e.g., Haiku/Nova Lite) for query rewriting to minimize latency and cost. The rewrite call should add ~1-2 seconds. Configurable via `RAG_REWRITE_MODEL_ID` environment variable.
+
+### 3.11 Error Handling and Graceful Degradation
+
+The rewrite LLM call is on the critical path of every query. Failure handling rules:
+
+| Failure scenario | Behavior |
+|------------------|----------|
+| LLM call timeout (>3s) | Fall back to original query, log warning |
+| LLM returns malformed JSON | Fall back to original query, log warning |
+| LLM throttled (429) | Retry once with 1s backoff, then fall back to original query |
+| Bedrock service error (5xx) | Fall back to original query, log error |
+
+**Principle:** Query rewriting is an enhancement, not a gate. A rewrite failure must never block the RAG pipeline. The system degrades gracefully to the pre-Batch-A behavior (raw query → retrieve → rerank → generate).
+
+Implementation: wrap the rewrite call in a try-catch within `QueryRewriteRouter`, returning a passthrough `RewriteResult(originalQuery, emptyList, null, originalQuery)` on any failure.
+
+### 3.12 Feature Flag
+
+Query rewriting is controlled by `rag.query-rewrite.enabled=true` (default `true`). When disabled, `QueryRewriteRouter` returns a passthrough result without calling any strategy. This allows:
+- Safe rollback if rewriting degrades quality
+- A/B comparison in evaluation (with vs without rewriting)
 
 ## 4. Answer Citation Module
 
@@ -214,6 +288,39 @@ public class CitationAssemblyService {
     }
 }
 ```
+
+### 4.3.1 Data Flow: CitationAssemblyService ↔ AnswerGenerationPort
+
+The citation module wraps the existing answer generation, not replaces it. Exact call sequence in `RagQueryApplicationService.handle()`:
+
+```java
+// 1. CitationAssemblyService produces formatted context string + citation map
+PromptWithCitations pwc = citationService.assemble(rerankedDocs);
+
+// 2. AnswerGenerationPort receives the pre-formatted context string (not raw docs)
+//    The port signature does NOT change. The formatted context replaces the old
+//    document concatenation that was previously built inside BedrockAnswerGenerationAdapter.
+String rawAnswer = answerGenerationPort.generateAnswer(query, pwc.formattedContext());
+
+// 3. CitationAssemblyService parses the LLM output to extract used citations
+CitedAnswer citedAnswer = citationService.parseResponse(rawAnswer, pwc.citationMap());
+```
+
+**Key point:** `AnswerGenerationPort.generateAnswer()` signature changes from `(String query, List<RetrievedDocument> sourceDocuments)` to `(String query, String formattedContext)`. The prompt template with citation instructions moves from `BedrockAnswerGenerationAdapter` into `CitationAssemblyService.assemble()`, which is the single owner of citation formatting logic. The adapter becomes a thinner LLM caller.
+
+### 4.3.2 Metadata Field Availability for Citations
+
+Citations require `filename`, `page_number`, and `section_path` from `RetrievedDocument.metadata`. Current state of these fields in the indexing pipeline:
+
+| Field | Currently indexed? | Source |
+|-------|-------------------|--------|
+| `metadata.filename` | **No** — not in current OpenSearch mapping | Must be added: written during `OpenSearchDocumentWriter.writeChunks()` from `DocumentFileRecord.filename` |
+| `metadata.page_number` | **Yes** — `ParsedChunk.pageNumber()` is written to metadata during indexing | Available |
+| `metadata.section_path` | **Yes** — `ParsedChunk.sectionPath()` is written to metadata during indexing | Available |
+
+**Required ingestion change:** Add `filename` to the metadata map in `OpenSearchDocumentWriter` when building the bulk index payload. This is a one-line addition. Existing indexed documents will lack this field — they need re-indexing, or the citation module falls back to the index name (which is an MD5 hash, less readable).
+
+This ingestion change is added to the Modified Files list in Section 6.
 
 ### 4.4 Prompt Template (Revised)
 
@@ -425,11 +532,63 @@ mvn test -Ptag=evaluation -Dtest=RagEvaluationTest
 cat evaluation-results/report-2026-03-26.json
 ```
 
-### 5.8 Trace Fields for Future Full-Chain Observability
+### 5.8 Evaluation Package Architecture
+
+The `evaluation` package is a **separate top-level module** at `com.huatai.rag.evaluation`, peer to `api`, `application`, `domain`, `infrastructure`. Internally it follows the same layered convention:
+
+```
+evaluation/
+  ├── model/                    # Value objects (TraceRecord, TestCase, EvaluationReport)
+  ├── application/              # Orchestration (EvaluationRunner, ReportGenerator)
+  └── infrastructure/           # External integration (RagasClient HTTP client)
+```
+
+Rationale: Evaluation is an orthogonal concern that reads from but does not modify the main RAG pipeline. Keeping it as a top-level package avoids polluting the main `application` or `infrastructure` layers with evaluation-only code. The `EvaluationRunner` depends on the same application services (`RagQueryApplicationService`) that the API layer uses.
+
+### 5.9 RAGAS Sidecar Deployment
+
+```yaml
+# ragas-evaluator/docker-compose.yml
+services:
+  ragas:
+    build: .
+    ports:
+      - "8002:8002"
+    environment:
+      - AWS_DEFAULT_REGION=us-west-2
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - RAGAS_LLM_MODEL_ID=qwen.qwen3-235b-a22b-2507-v1:0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      retries: 3
+```
+
+AWS credentials are passed through from the host environment. The sidecar runs on port 8002 to avoid conflict with the backend on 8001.
+
+### 5.10 Trace Fields for Future Full-Chain Observability
 
 `TraceRecord` includes all fields needed for Batch B's Langfuse integration. When Langfuse is introduced, the same data structure feeds into OpenTelemetry spans without schema changes.
 
-## 6. File Inventory
+## 6. Test Strategy
+
+New components require tests to maintain the project's existing verification discipline (42 passing tests).
+
+| Component | Test type | What to verify |
+|-----------|-----------|---------------|
+| `QueryRewriteRouter` | Unit | Correct strategy selection by module; fallback to default; passthrough when disabled |
+| `CobKeywordRewriteStrategy` | Unit (mocked Bedrock) | JSON parsing of rewrite response; keyword extraction; graceful degradation on malformed JSON |
+| `CollateralStructuredRewriteStrategy` | Unit (mocked Bedrock) | Triple parsing; partial parse handling; fallback query generation |
+| `CitationAssemblyService.assemble()` | Unit | Document numbering; metadata extraction; prompt format correctness |
+| `CitationAssemblyService.parseResponse()` | Unit | Regex extraction of `[n]` markers; handling of no citations; duplicate citation handling |
+| `RetrievalRequest` + metadata filter | Integration | OpenSearch `bool` + `knn` + `filter` query produces correct filtered results |
+| `EvaluationRunner` | Integration | End-to-end trace collection from a test case through the pipeline |
+| `RagasClient` | Unit (WireMock) | HTTP request format; response parsing; error handling |
+
+Estimated: ~15-20 new test methods. All run as part of the standard `mvn test` suite except `RagEvaluationTest` (tagged `evaluation`, requires live services).
+
+## 7. File Inventory
 
 ### New Files
 
@@ -444,12 +603,12 @@ cat evaluation-results/report-2026-03-26.json
 | application | `CitationAssemblyService.java` | Citation assembly + response parsing |
 | infrastructure | `CobKeywordRewriteStrategy.java` | COB keyword extraction via Bedrock |
 | infrastructure | `CollateralStructuredRewriteStrategy.java` | Collateral triple parsing via Bedrock |
-| evaluation | `TraceRecord.java` | Pipeline trace data |
-| evaluation | `TestCase.java` `TestDataset.java` | Test dataset model |
-| evaluation | `EvaluationReport.java` | Report model |
-| evaluation | `EvaluationRunner.java` | Batch runner + trace collector |
-| evaluation | `RagasClient.java` | HTTP client for RAGAS service |
-| evaluation | `ReportGenerator.java` | Report generation |
+| evaluation/model | `TraceRecord.java` | Pipeline trace data |
+| evaluation/model | `TestCase.java` `TestDataset.java` | Test dataset model |
+| evaluation/model | `EvaluationReport.java` | Report model |
+| evaluation/application | `EvaluationRunner.java` | Batch runner + trace collector (application-layer orchestration) |
+| evaluation/infrastructure | `RagasClient.java` | HTTP client for RAGAS service (infrastructure-layer adapter) |
+| evaluation/application | `ReportGenerator.java` | Report generation |
 | python | `ragas-evaluator/` | RAGAS FastAPI service + Dockerfile |
 | test resources | `evaluation/*.json` | Test datasets |
 
@@ -457,12 +616,15 @@ cat evaluation-results/report-2026-03-26.json
 
 | File | Change |
 |------|--------|
-| `RagQueryApplicationService.java` | Insert query rewrite + citation steps |
+| `RagQueryApplicationService.java` | Insert query rewrite + citation steps into pipeline |
 | `RagResponse.java` | Add `citations` field (backward compatible) |
-| `RetrievalPort.java` | Add metadata filter parameter |
-| `OpenSearchRetrievalAdapter.java` | Implement metadata filter retrieval |
-| `ApplicationWiringConfig.java` | Wire new beans |
-| Prompt template (in `BedrockAnswerGenerationAdapter`) | Add citation numbering instructions |
+| `RetrievalPort.java` | Replace 7-param signature with `RetrievalRequest` value object; add `metadataFilters` |
+| `OpenSearchRetrievalAdapter.java` | Implement metadata filter retrieval via `bool` + `knn` + `filter` query |
+| `AnswerGenerationPort.java` | Change signature from `(String, List<RetrievedDocument>)` to `(String, String)` — receives pre-formatted context |
+| `BedrockAnswerGenerationAdapter.java` | Simplify to thin LLM caller; citation prompt template moves to `CitationAssemblyService` |
+| `OpenSearchDocumentWriter.java` | Add `filename` to metadata map during bulk indexing (one-line change) |
+| `ApplicationWiringConfig.java` | Wire new beans (`QueryRewriteRouter`, `CitationAssemblyService`, strategies) |
+| `RagProperties.java` / `application.yml` | Add `rag.query-rewrite.enabled`, `RAG_REWRITE_MODEL_ID` |
 
 ### Unchanged
 
@@ -472,7 +634,7 @@ cat evaluation-results/report-2026-03-26.json
 - PostgreSQL schema
 - Existing API endpoint signatures
 
-## 7. Key Decisions Summary
+## 8. Key Decisions Summary
 
 | # | Decision | Conclusion |
 |---|----------|------------|
@@ -487,7 +649,7 @@ cat evaluation-results/report-2026-03-26.json
 | 9 | AI framework | Batch A hand-written; Spring AI deferred to Batch B |
 | 10 | Design pattern | Strategy + Registry for query rewrite extensibility |
 
-## 8. Future: Batch B Scope (Not This Design)
+## 9. Future: Batch B Scope (Not This Design)
 
 - Multi-turn conversation (Session Memory)
 - Streaming output (SSE)
