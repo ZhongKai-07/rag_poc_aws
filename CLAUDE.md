@@ -20,7 +20,8 @@ RAG 知识库问答系统，正在从 Python 后端 (`api/`) 向 Spring Boot 后
 | Scope | Documents |
 |-------|-----------|
 | 后端迁移 | `control/Prompt.md`, `control/Plan.md`, `control/Implement.md`, `control/Documentation.md` |
-| Enhanced RAG | `control/enhanced_rag/Prompt.md`, `control/enhanced_rag/Plan.md`, `control/enhanced_rag/Implement.md`, `control/enhanced_rag/Documentation.md` |
+| Enhanced RAG Batch A | `control/enhanced_rag/Prompt.md`, `control/enhanced_rag/Plan.md`, `control/enhanced_rag/Implement.md`, `control/enhanced_rag/Documentation.md` |
+| Enhanced RAG Batch B | `control/enhanced_rag_b/Prompt.md`, `control/enhanced_rag_b/Plan.md`, `control/enhanced_rag_b/Implement.md`, `control/enhanced_rag_b/Documentation.md` |
 | Docling 集成 | `control/docling/Prompt.md`, `control/docling/Plan.md`, `control/docling/Implement.md`, `control/docling/Documentation.md` |
 | 迁移计划 | `docs/superpowers/plans/2026-03-19-springboot-rag-migration-layered-plan.md` |
 | 切换检查 | `docs/superpowers/plans/2026-03-19-migration-cutover-checklist.md` |
