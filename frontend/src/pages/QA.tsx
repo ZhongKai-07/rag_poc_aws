@@ -12,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, ChevronUp, Loader2, MessageSquare, TrendingUp, Settings, FileText, Search, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, MessageSquare, TrendingUp, Settings, FileText, Search, Sparkles, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface ProcessedFile {
   filename: string;
@@ -31,11 +32,20 @@ interface RecallDocument {
   score: number;
 }
 
+interface CitationInfo {
+  index: number;
+  filename: string;
+  page_number: number | null;
+  section_path: string | null;
+  excerpt: string;
+}
+
 interface RAGResponse {
   answer: string;
   source_documents: SourceDocument[];
   recall_documents: RecallDocument[];
   rerank_documents: SourceDocument[];
+  citations?: CitationInfo[];
 }
 
 interface TopQuestion {
@@ -50,14 +60,18 @@ const QA = () => {
   const [threshold, setThreshold] = useState("0");
   const [numDocs, setNumDocs] = useState("3");
   const [searchMode, setSearchMode] = useState("mix");
+  const [module, setModule] = useState("RAG");
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<RAGResponse | null>(null);
   const [showSources, setShowSources] = useState(false);
   const [showRecall, setShowRecall] = useState(false);
   const [showRerank, setShowRerank] = useState(false);
+  const [showCitations, setShowCitations] = useState(false);
+  const [expandedCitation, setExpandedCitation] = useState<number | null>(null);
   const [topQuestions, setTopQuestions] = useState<TopQuestion[]>([]);
   const { toast } = useToast();
   const answerRef = useRef<HTMLDivElement>(null);
+  const citationRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const extractPhrases = (answer: string): string[] => {
     // Step 1: Split by punctuation (NOT spaces) to keep multi-word phrases intact
@@ -173,6 +187,51 @@ const QA = () => {
     return parts.length > 1 ? parts : content;
   };
 
+  const renderAnswerWithCitations = (answer: string, citations?: CitationInfo[]) => {
+    if (!citations || citations.length === 0) {
+      return <p className="text-foreground/90 leading-7 text-lg whitespace-pre-wrap">{answer}</p>;
+    }
+
+    const parts = answer.split(/(\[\d+\])/g);
+    return (
+      <div className="text-foreground/90 leading-7 text-lg whitespace-pre-wrap">
+        {parts.map((part, i) => {
+          const match = part.match(/^\[(\d+)\]$/);
+          if (match) {
+            const idx = parseInt(match[1]);
+            const citation = citations.find(c => c.index === idx);
+            if (citation) {
+              return (
+                <button
+                  key={i}
+                  onClick={() => {
+                    const newVal = expandedCitation === idx ? null : idx;
+                    setExpandedCitation(newVal);
+                    if (newVal !== null) {
+                      setShowCitations(true);
+                      setTimeout(() => {
+                        citationRefs.current.get(idx)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                      }, 100);
+                    }
+                  }}
+                  className={cn(
+                    "inline-flex items-center justify-center w-5 h-5 mx-0.5 text-white text-[10px] font-bold rounded-full align-baseline cursor-pointer transition-colors",
+                    expandedCitation === idx ? "bg-amber-500 ring-2 ring-amber-300" : "bg-primary/80 hover:bg-primary"
+                  )}
+                  title={`${citation.filename}${citation.page_number ? ` - p.${citation.page_number}` : ''}`}
+                >
+                  {idx}
+                </button>
+              );
+            }
+            return <span key={i}>{part}</span>;
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </div>
+    );
+  };
+
   useEffect(() => {
     fetchProcessedFiles();
   }, []);
@@ -243,6 +302,8 @@ const QA = () => {
     setShowSources(false);
     setShowRecall(false);
     setShowRerank(false);
+    setShowCitations(false);
+    setExpandedCitation(null);
 
     try {
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -256,7 +317,7 @@ const QA = () => {
           session_id: sessionId,
           index_names: indexNames,
           query: question,
-          module: "RAG",
+          module: module,
           vec_docs_num: parseInt(numDocs),
           txt_docs_num: parseInt(numDocs),
           vec_score_threshold: 0.0,
@@ -308,6 +369,19 @@ const QA = () => {
             </div>
             
             <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-muted-foreground uppercase">Scene / 场景</Label>
+                <Select value={module} onValueChange={setModule}>
+                  <SelectTrigger className="bg-background/50 border-white/10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="RAG">COB 知识问答</SelectItem>
+                    <SelectItem value="collateral">Collateral 协议查询</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-xs font-medium text-muted-foreground uppercase">Search Mode</Label>
                 <Select value={searchMode} onValueChange={setSearchMode}>
@@ -449,12 +523,64 @@ const QA = () => {
                     AI Analysis
                   </h3>
                   <div className="prose prose-invert max-w-none">
-                    <p className="text-foreground/90 leading-7 text-lg whitespace-pre-wrap">
-                      {response.answer}
-                    </p>
+                    {renderAnswerWithCitations(response.answer, response.citations)}
                   </div>
                 </div>
               </Card>
+
+              {/* Citation References */}
+              {response.citations && response.citations.length > 0 && (
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => setShowCitations(!showCitations)}
+                    variant="outline"
+                    className="w-full justify-between bg-background/40 border-white/10 hover:bg-white/5"
+                  >
+                    <span className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-amber-400" />
+                      Citations ({response.citations.length})
+                    </span>
+                    {showCitations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+
+                  {showCitations && (
+                    <div className="grid gap-3 animate-fade-in">
+                      {response.citations.map((citation) => (
+                        <Card
+                          key={citation.index}
+                          ref={(el) => { if (el) citationRefs.current.set(citation.index, el); }}
+                          className={cn(
+                            "p-4 text-sm border transition-all",
+                            expandedCitation === citation.index
+                              ? "bg-amber-500/10 border-amber-500/40 ring-1 ring-amber-500/20"
+                              : "bg-amber-500/5 border-amber-500/20"
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/80 text-white text-xs font-bold flex items-center justify-center">
+                              {citation.index}
+                            </span>
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-foreground">{citation.filename}</span>
+                                {citation.page_number && (
+                                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                    p.{citation.page_number}
+                                  </span>
+                                )}
+                              </div>
+                              {citation.section_path && (
+                                <div className="text-xs text-muted-foreground">{citation.section_path}</div>
+                              )}
+                              <p className="text-muted-foreground mt-1 leading-relaxed">{citation.excerpt}</p>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Evidence Accordions */}
               <div className="grid md:grid-cols-2 gap-4">
