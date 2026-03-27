@@ -28,13 +28,13 @@
 **范围:** 路由器 + 双路径策略 + OpenSearch metadata filter
 
 **交付物:**
-- [ ] `QueryRewriteRouter`（application 层）
-- [ ] `CobKeywordRewriteStrategy`（infrastructure 层）
-- [ ] `CollateralStructuredRewriteStrategy`（infrastructure 层）
-- [ ] `OpenSearchQueryBuilder` + metadata filter 查询
-- [ ] `OpenSearchIndexManager` mapping 更新（`keyword` 类型）
+- [x] `QueryRewriteRouter`（application 层）
+- [x] `CobKeywordRewriteStrategy`（infrastructure 层）
+- [x] `CollateralStructuredRewriteStrategy`（infrastructure 层）
+- [x] `OpenSearchQueryBuilder` + metadata filter 查询
+- [x] `OpenSearchIndexManager` mapping 更新（`keyword` 类型）
 
-**验证:** `mvn test` — Router 路由正确、策略解析 JSON 正确、降级正确、filter 查询构建正确
+**验证:** `mvn test` — 77 tests, 0 failures ✓
 
 **停止修复规则:** 如果 LLM 调用 mock 测试失败（JSON 解析、超时降级），必须在本里程碑内修复。
 

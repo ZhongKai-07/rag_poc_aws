@@ -10,7 +10,7 @@
 | # | 里程碑 | 状态 | 完成日期 |
 |---|--------|------|---------|
 | 1 | Foundation — 域值对象 + 配置 | **完成** | 2026-03-27 |
-| 2 | Query Rewriting — 路由器 + 策略 + filter | 待开始 | — |
+| 2 | Query Rewriting — 路由器 + 策略 + filter | **完成** | 2026-03-27 |
 | 3 | Answer Citation — 组装 + Port 变更 + DTO | 待开始 | — |
 | 4 | Pipeline Integration — 管线串联 + E2E | 待开始 | — |
 | 5 | Offline Evaluation — Runner + RAGAS sidecar | 待开始 | — |
@@ -19,8 +19,8 @@
 ### 测试统计
 
 - 现有测试: 42 个通过（含重构后更新的 4 个测试文件）
-- 新增测试: 9（3 query rewrite + 3 citation + 3 feature flag）
-- 总计: 64 通过 / ~72-77（预估最终）
+- 新增测试: 22（M1: 9 + M2: 13）
+- 总计: 77 通过 / ~85-90（预估最终）
 
 ## 已做出的决策
 
