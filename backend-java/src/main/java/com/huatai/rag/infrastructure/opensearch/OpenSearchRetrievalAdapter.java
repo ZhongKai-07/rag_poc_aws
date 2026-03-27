@@ -108,9 +108,18 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
                 throw new IllegalStateException("EmbeddingPort is required for vector search");
             }
 
+            long embedStart = System.currentTimeMillis();
             List<Float> queryVector = embeddingPort.embedAll(List.of(query)).get(0);
+            long embedMs = System.currentTimeMillis() - embedStart;
+
             Map<String, Object> body = OpenSearchQueryBuilder.buildVectorQuery(queryVector, limit, metadataFilters);
-            return executeSearch(indexNames, body, scoreThreshold, true);
+
+            long searchStart = System.currentTimeMillis();
+            List<RetrievedDocument> results = executeSearch(indexNames, body, scoreThreshold, true);
+            long searchMs = System.currentTimeMillis() - searchStart;
+
+            log.info("[Retrieval] vectorSearch: embed={}ms, opensearch={}ms, results={}", embedMs, searchMs, results.size());
+            return results;
         }
 
         @Override
@@ -120,7 +129,11 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
                     "query", Map.of(
                             "match", Map.of(
                                     "sentence", query)));
-            return executeSearch(indexNames, body, scoreThreshold, false);
+            long searchStart = System.currentTimeMillis();
+            List<RetrievedDocument> results = executeSearch(indexNames, body, scoreThreshold, false);
+            long searchMs = System.currentTimeMillis() - searchStart;
+            log.info("[Retrieval] textSearch: opensearch={}ms, results={}", searchMs, results.size());
+            return results;
         }
 
         private List<RetrievedDocument> executeSearch(

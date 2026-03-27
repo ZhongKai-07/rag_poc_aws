@@ -122,16 +122,20 @@ public interface RagQueryApplicationService {
             log.info("[RAG] retrieval: {}ms, recall={} docs, method={}",
                     retrievalMs, retrievalResult.recallDocuments().size(), command.searchMethod());
 
-            // 3. Rerank
+            // 3. Rerank (apply server-side floor to client threshold)
+            double effectiveRerankThreshold = Math.max(
+                    command.rerankScoreThreshold(),
+                    ragProperties.getRerankScoreThreshold());
             long rerankStart = System.currentTimeMillis();
             List<RetrievedDocument> rerankedDocuments = rerankPort.rerank(
                     rewriteResult.rewrittenQuery(),
                     retrievalResult.rerankDocuments(),
-                    command.rerankScoreThreshold());
+                    effectiveRerankThreshold);
             long rerankMs = System.currentTimeMillis() - rerankStart;
-            log.info("[RAG] rerank: {}ms, input={} -> output={} docs (threshold={})",
+            log.info("[RAG] rerank: {}ms, input={} -> output={} docs (threshold={}, requested={}, floor={})",
                     rerankMs, retrievalResult.rerankDocuments().size(),
-                    rerankedDocuments.size(), command.rerankScoreThreshold());
+                    rerankedDocuments.size(), effectiveRerankThreshold,
+                    command.rerankScoreThreshold(), ragProperties.getRerankScoreThreshold());
 
             if (rerankedDocuments.isEmpty()) {
                 log.warn("[RAG] no documents survived reranking, returning fallback answer");

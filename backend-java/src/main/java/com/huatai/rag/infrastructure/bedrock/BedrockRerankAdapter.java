@@ -74,6 +74,7 @@ public class BedrockRerankAdapter implements RerankPort {
                     .build());
         }
 
+        long apiStart = System.currentTimeMillis();
         RerankResponse response = bedrockAgentRuntimeClient.rerank(RerankRequest.builder()
                 .queries(RerankQuery.builder()
                         .type("TEXT")
@@ -90,11 +91,13 @@ public class BedrockRerankAdapter implements RerankPort {
                                 .build())
                         .build())
                 .build());
+        long apiMs = System.currentTimeMillis() - apiStart;
 
         List<RetrievedDocument> reranked = new ArrayList<>();
         for (RerankResult result : response.results()) {
             int index = result.index();
             double relevanceScore = result.relevanceScore();
+            log.debug("[Rerank] doc[{}] score={} (threshold={})", index, relevanceScore, rerankScoreThreshold);
             if (relevanceScore >= rerankScoreThreshold) {
                 RetrievedDocument original = documents.get(index);
                 reranked.add(new RetrievedDocument(
@@ -105,7 +108,7 @@ public class BedrockRerankAdapter implements RerankPort {
             }
         }
 
-        log.info("Rerank: {} input docs, {} passed threshold {}", documents.size(), reranked.size(), rerankScoreThreshold);
+        log.info("[Rerank] {}ms, {} input docs, {} passed threshold {}", apiMs, documents.size(), reranked.size(), rerankScoreThreshold);
         return reranked;
     }
 }

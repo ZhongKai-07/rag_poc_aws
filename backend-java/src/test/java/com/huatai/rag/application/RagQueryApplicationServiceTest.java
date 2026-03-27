@@ -87,6 +87,37 @@ class RagQueryApplicationServiceTest {
     }
 
     @Test
+    void rerankThresholdFloorIsAppliedWhenClientSendsLowerValue() {
+        RetrievedDocument doc = new RetrievedDocument("content", 90.0, null, Map.of());
+        RetrievalResult retrievalResult = new RetrievalResult(List.of(doc), List.of(doc));
+
+        FakeRagQueryDependencies dependencies = new FakeRagQueryDependencies(retrievalResult);
+        dependencies.rerankedDocuments = List.of(doc);
+        dependencies.answer = "test";
+
+        var ragProps = new RagProperties();
+        // Server-side floor is 0.5 (default in RagProperties)
+        com.huatai.rag.domain.rag.QueryRewriteStrategy passthrough = new com.huatai.rag.domain.rag.QueryRewriteStrategy() {
+            public boolean supports(String module) { return true; }
+            public com.huatai.rag.domain.rag.RewriteResult rewrite(String query) {
+                return com.huatai.rag.domain.rag.RewriteResult.passthrough(query);
+            }
+        };
+        var router = new QueryRewriteRouter(List.of(), passthrough, ragProps);
+        RagQueryApplicationService.Default service = new RagQueryApplicationService.Default(
+                dependencies.retrievalPort, dependencies.rerankPort, dependencies.answerGenerationPort,
+                new FakeQuestionHistoryPort(), new ContextAssemblyService(),
+                router, new CitationAssemblyService(), ragProps);
+
+        // Client sends rerankScoreThreshold=0.0, but server floor is 0.5
+        service.handle(new RagQueryApplicationService.QueryCommand(
+                "test-session", List.of("idx"), "query", "RAG",
+                3, 2, 0.0, 0.0, 0.0, "mix"));
+
+        assertThat(dependencies.capturedRerankThreshold).isEqualTo(0.5);
+    }
+
+    @Test
     void questionHistoryServiceMapsSingleAndMultiIndexQueries() {
         FakeQuestionHistoryPort questionHistoryPort = new FakeQuestionHistoryPort();
         questionHistoryPort.singleIndexResults = List.of(
@@ -122,6 +153,7 @@ class RagQueryApplicationServiceTest {
         private List<String> requestedIndexNames = List.of();
         private SearchMethod requestedSearchMethod;
         private String rerankQuery;
+        private double capturedRerankThreshold;
 
         private FakeRagQueryDependencies(RetrievalResult retrievalResult) {
             this.retrievalResult = retrievalResult;
@@ -132,6 +164,7 @@ class RagQueryApplicationServiceTest {
             };
             this.rerankPort = (query, documents, rerankScoreThreshold) -> {
                 this.rerankQuery = query;
+                this.capturedRerankThreshold = rerankScoreThreshold;
                 return rerankedDocuments;
             };
             this.answerGenerationPort = (query, formattedContext) -> answer;
