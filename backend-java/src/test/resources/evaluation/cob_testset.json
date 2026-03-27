@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "dataset": "cob_baseline",
+  "cases": [
+    {
+      "id": "COB-001",
+      "module": "cob",
+      "query": "AML审查流程是什么？",
+      "expectedKeywords": ["AML", "KYC", "审查"],
+      "expectedStructured": null,
+      "expectedSources": [{"filename": "AML手册.pdf", "pageNumbers": [3, 4]}],
+      "referenceAnswer": "AML审查流程包括客户身份核实、交易监控和可疑活动报告。",
+      "difficulty": "easy"
+    },
+    {
+      "id": "COB-002",
+      "module": "cob",
+      "query": "PI分类的标准有哪些？",
+      "expectedKeywords": ["PI", "分类", "专业投资者"],
+      "expectedStructured": null,
+      "expectedSources": [{"filename": "开户指引.pdf", "pageNumbers": [8]}],
+      "referenceAnswer": "PI分类标准包括资产规模、投资经验和专业资质。",
+      "difficulty": "medium"
+    }
+  ]
+}

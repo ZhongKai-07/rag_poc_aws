@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "dataset": "collateral_baseline",
+  "cases": [
+    {
+      "id": "COL-001",
+      "module": "collateral",
+      "query": "华泰和HSBC的ISDA下MTA是多少？",
+      "expectedKeywords": ["MTA", "HSBC", "ISDA"],
+      "expectedStructured": {
+        "counterparty": "HSBC",
+        "agreementType": "ISDA_CSA",
+        "businessField": "minimum transfer amount",
+        "fallbackQuery": "HSBC ISDA MTA"
+      },
+      "expectedSources": [{"filename": "HSBC_ISDA_CSA.pdf", "pageNumbers": [12]}],
+      "referenceAnswer": "华泰与HSBC的ISDA CSA下最低转让金额(MTA)为500万美元。",
+      "difficulty": "medium"
+    },
+    {
+      "id": "COL-002",
+      "module": "collateral",
+      "query": "Goldman Sachs的eligible collateral包括哪些？",
+      "expectedKeywords": ["eligible collateral", "Goldman Sachs"],
+      "expectedStructured": {
+        "counterparty": "Goldman Sachs",
+        "agreementType": null,
+        "businessField": "eligible collateral",
+        "fallbackQuery": "Goldman Sachs eligible collateral"
+      },
+      "expectedSources": [{"filename": "GS_CSA.pdf", "pageNumbers": [5, 6]}],
+      "referenceAnswer": "Goldman Sachs的合格抵押品包括现金、政府债券和投资级公司债。",
+      "difficulty": "hard"
+    }
+  ]
+}
