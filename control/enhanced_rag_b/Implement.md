@@ -3,7 +3,7 @@
 ## 唯一事实来源
 
 - **设计规格:** `docs/superpowers/specs/2026-03-28-enhanced-rag-batch-b-design.md`
-- **实施计划:** `docs/superpowers/plans/2026-03-28-enhanced-rag-batch-b-plan.md`（待生成）
+- **实施计划:** `docs/superpowers/plans/2026-03-28-enhanced-rag-batch-b-plan.md`
 - **里程碑进度:** `control/enhanced_rag_b/Plan.md`
 - **状态与决策:** `control/enhanced_rag_b/Documentation.md`
 

@@ -2,7 +2,7 @@
 
 ## 详细实施计划
 
-见 `docs/superpowers/plans/2026-03-28-enhanced-rag-batch-b-plan.md`（待生成）。
+见 `docs/superpowers/plans/2026-03-28-enhanced-rag-batch-b-plan.md`（19个Task，6个Chunk）。
 
 ## 里程碑
 
