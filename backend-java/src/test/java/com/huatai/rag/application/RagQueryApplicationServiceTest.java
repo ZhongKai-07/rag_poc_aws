@@ -114,7 +114,7 @@ class RagQueryApplicationServiceTest {
                 "test-session", List.of("idx"), "query", "RAG",
                 3, 2, 0.0, 0.0, 0.0, "mix"));
 
-        assertThat(dependencies.capturedRerankThreshold).isEqualTo(0.5);
+        assertThat(dependencies.capturedRerankThreshold).isEqualTo(0.01);
     }
 
     @Test

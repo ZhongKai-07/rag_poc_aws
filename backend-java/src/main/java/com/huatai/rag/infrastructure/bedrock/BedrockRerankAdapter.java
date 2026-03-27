@@ -97,7 +97,7 @@ public class BedrockRerankAdapter implements RerankPort {
         for (RerankResult result : response.results()) {
             int index = result.index();
             double relevanceScore = result.relevanceScore();
-            log.debug("[Rerank] doc[{}] score={} (threshold={})", index, relevanceScore, rerankScoreThreshold);
+            log.info("[Rerank] doc[{}] score={} (threshold={})", index, relevanceScore, rerankScoreThreshold);
             if (relevanceScore >= rerankScoreThreshold) {
                 RetrievedDocument original = documents.get(index);
                 reranked.add(new RetrievedDocument(

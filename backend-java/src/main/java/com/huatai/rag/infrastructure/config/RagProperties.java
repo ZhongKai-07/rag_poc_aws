@@ -8,7 +8,7 @@ public class RagProperties {
 
     private double vecScoreThreshold = 0.0;
     private double textScoreThreshold = 0.0;
-    private double rerankScoreThreshold = 0.5;
+    private double rerankScoreThreshold = 0.01;
     private Duration requestTimeout = Duration.ofSeconds(30);
     private int retryMaxAttempts = 3;
     private Duration retryBackoff = Duration.ofSeconds(1);

@@ -34,7 +34,7 @@ huatai:
   rag:
     vec-score-threshold: ${RAG_VEC_SCORE_THRESHOLD:0.0}
     text-score-threshold: ${RAG_TEXT_SCORE_THRESHOLD:0.0}
-    rerank-score-threshold: ${RAG_RERANK_SCORE_THRESHOLD:0.5}
+    rerank-score-threshold: ${RAG_RERANK_SCORE_THRESHOLD:0.01}
     request-timeout: ${RAG_REQUEST_TIMEOUT:30s} 
     retry-max-attempts: ${RAG_RETRY_MAX_ATTEMPTS:3}
     retry-backoff: ${RAG_RETRY_BACKOFF:1s}
