@@ -120,13 +120,17 @@ public interface ChatMessagePort {
 
 ### 3.4 Conversation Memory: Sliding Window + Compression
 
+**Layering clarification:**
+
+- `HistoryCompressorPort` (domain) — pure LLM compression contract, implemented by `BedrockConversationMemoryAdapter` (infrastructure)
+- `ConversationMemoryService` (application) — orchestrates sliding window logic, reads messages via `ChatMessagePort`, calls `HistoryCompressorPort` when compression needed
+- `ConversationContext` (domain) — value object holding the result
+
 ```java
-// domain/chat/ConversationMemoryPort.java
-public interface ConversationMemoryPort {
-    /** Load context for prompt injection */
-    ConversationContext loadContext(UUID sessionId);
-    /** Compress older messages into summary */
-    String compressHistory(List<ChatMessage> messages);
+// domain/chat/HistoryCompressorPort.java
+public interface HistoryCompressorPort {
+    /** Compress conversation history into a summary via LLM */
+    String compress(List<ChatMessage> messages);
 }
 
 // domain/chat/ConversationContext.java
@@ -134,6 +138,17 @@ public record ConversationContext(
     String formattedHistory,   // Ready to inject into prompt
     boolean compressed         // True if compression was triggered
 ) {}
+
+// application/chat/ConversationMemoryService.java
+public class ConversationMemoryService {
+    private final ChatMessagePort chatMessagePort;
+    private final HistoryCompressorPort compressorPort;
+
+    /** Load conversation context with sliding window + compression */
+    public ConversationContext loadContext(UUID sessionId) {
+        // Sliding window logic (see below)
+    }
+}
 ```
 
 **Logic:**
@@ -208,6 +223,20 @@ The existing `session_id` field in `RagRequest` changes from a client-generated 
 - If `session_id` is a valid UUID → load session history
 - If `session_id` is not a valid UUID (legacy frontend sends random string) → treat as new session
 
+**Important:** The current `RagRequest.sessionId` has `@NotBlank` validation annotation. This must be **removed** and replaced with nullable handling in the service layer (`@Nullable` or simply remove the annotation). Otherwise the null/empty backward compatibility path will fail at request validation.
+
+### 3.7 Session Title Auto-Generation
+
+Title is derived from the first 50 characters of the user's first query, with trailing incomplete words trimmed. If the query is shorter than 50 characters, use the full text. This ensures the `VARCHAR(100)` column is never exceeded even with multi-byte characters.
+
+### 3.8 Session Cleanup
+
+Session TTL/cleanup is deferred. Sessions accumulate indefinitely. This is acceptable for POC; a scheduled cleanup job (e.g., delete sessions older than 90 days) can be added when needed.
+
+### 3.9 Multi-User Note
+
+The `chat_session` table has no `user_id` column. This is **single-user by design** — the current system has no authentication. Multi-user session isolation is deferred until authentication is implemented. Implementers should NOT build queries that assume user scoping exists.
+
 ## 4. Streaming Output (SSE)
 
 ### 4.1 New Endpoint
@@ -259,13 +288,27 @@ public interface AnswerGenerationPort {
 
 `BedrockAnswerGenerationAdapter` adds streaming implementation using `bedrockRuntimeClient.converseStream()`, calling `tokenConsumer.accept(token)` per token.
 
+**Retry strategy for streaming:** Streaming calls are NOT retried after the first token is emitted (partial response already sent to client). If the stream fails before any token is emitted, retry once. After first token, the `error` SSE event is the fallback mechanism. This differs from the synchronous path which retries up to 3 times via `RetryUtils`.
+
 ### 4.4 Controller Implementation
+
+A dedicated `TaskExecutor` bean is configured for streaming to avoid thread exhaustion:
+
+```yaml
+# application.yml
+huatai:
+  streaming:
+    core-pool-size: 4
+    max-pool-size: 8
+    queue-capacity: 50
+    timeout: 60s
+```
 
 ```java
 @PostMapping(value = "/rag_answer/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 public SseEmitter ragAnswerStream(@RequestBody RagRequest request) {
     SseEmitter emitter = new SseEmitter(60_000L);
-    executor.execute(() -> {
+    streamingExecutor.execute(() -> {  // dedicated bounded thread pool
         try {
             // 1. Shared pipeline: history → rewrite → retrieve → rerank → citation assembly
             // 2. Stream: generateAnswerStream(tokenConsumer) → send token events
@@ -396,10 +439,28 @@ Modify the citation prompt template to also request follow-up questions:
 
 ### 6.2 Impact on Pipeline
 
-- `CitationAssemblyService` modifies prompt template to include JSON output instruction + few-shot example
-- LLM output changes from plain text to JSON (`{"answer": "...", "suggested_questions": [...]}`)
-- `CitationAssemblyService.parseResponse()` extended: extract `answer` for citation parsing + extract `suggested_questions` list
-- Streaming: tokens stream as-is; after full text collected, parse JSON in `done` event
+LLM output changes from plain text to JSON. The updated call sequence in `RagQueryApplicationService.Default.handle()`:
+
+```java
+// 1. Get raw LLM output (now JSON)
+String rawOutput = answerGenerationPort.generateAnswer(query, formattedContext);
+
+// 2. Attempt JSON parse — extract answer text and suggested questions
+ParsedLlmOutput parsed = citationService.parseLlmOutput(rawOutput);
+// parsed.answerText = "根据[1]，KYC审查..." (plain text with [n] markers)
+// parsed.suggestedQuestions = ["追问1", "追问2"]
+// If JSON parse fails: answerText = rawOutput, suggestedQuestions = []
+
+// 3. Pass extracted answer text (not full JSON) to citation parser
+CitedAnswer citedAnswer = citationService.parseResponse(parsed.answerText(), pwc.citationMap());
+
+// 4. Combine into result
+// citedAnswer.answer + citedAnswer.citations + parsed.suggestedQuestions
+```
+
+**Key change:** `parseResponse()` input changes from "full raw LLM output" to "extracted answer field from JSON". A new `parseLlmOutput()` method handles the JSON extraction step before citation parsing.
+
+- Streaming: tokens stream as-is (raw JSON text); after full text collected, same `parseLlmOutput()` → `parseResponse()` chain runs, results sent in `done` event
 
 ### 6.3 Graceful Degradation
 
@@ -454,12 +515,13 @@ When `metadata.filename` is missing from OpenSearch (legacy indexed documents):
 // In CitationAssemblyService:
 String filename = extractFromMetadata(metadata, "filename");
 if (filename == null) {
-    filename = documentRegistryPort.findFilenameByIndexName(indexName)
+    filename = documentRegistryPort.findByIndexName(indexName)
+                                   .map(DocumentFileRecord::filename)
                                    .orElse(indexName);
 }
 ```
 
-`DocumentRegistryPort` adds: `Optional<String> findFilenameByIndexName(String indexName)` — queries `document_file` table.
+Uses the existing `DocumentRegistryPort.findByIndexName()` method — no new port method needed.
 
 ### 8.2 OCR Noise Filtering
 
@@ -538,7 +600,7 @@ New fields: `suggested_questions`, `confidence`, `history_compressed`, `session_
 | domain/chat | `ChatSessionPort.java` | Session persistence port |
 | domain/chat | `ChatMessagePort.java` | Message persistence port |
 | domain/chat | `ChatFeedbackPort.java` | Feedback persistence port |
-| domain/chat | `ConversationMemoryPort.java` | Memory load + compress port |
+| domain/chat | `HistoryCompressorPort.java` | LLM compression contract (domain port) |
 | domain/chat | `ConversationContext.java` | Memory context value object |
 | domain/rag | `ConfidenceLevel.java` | Confidence enum |
 | application/chat | `ChatSessionApplicationService.java` | Session CRUD orchestration |
@@ -556,7 +618,7 @@ New fields: `suggested_questions`, `confidence`, `history_compressed`, `session_
 | infrastructure/persistence | `ChatMessagePersistenceAdapter.java` | Port impl |
 | infrastructure/persistence | `ChatFeedbackPersistenceAdapter.java` | Port impl |
 | infrastructure/bedrock | `BedrockConversationMemoryAdapter.java` | LLM compression impl |
-| resources/db/migration | `V5__chat_session.sql` | Session table |
+| resources/db/migration | `V5__chat_session.sql` | Session table (version number provisional — adjust to follow highest existing migration at implementation time) |
 | resources/db/migration | `V6__chat_message.sql` | Message table |
 | resources/db/migration | `V7__chat_feedback.sql` | Feedback table |
 
@@ -572,8 +634,7 @@ New fields: `suggested_questions`, `confidence`, `history_compressed`, `session_
 | `RagController.java` | Add `/rag_answer/stream` SSE endpoint |
 | `RagResponse.java` | Add `suggested_questions`, `confidence`, `history_compressed`, `session_id` fields |
 | `RagRequest.java` | `session_id` becomes UUID reference to chat_session |
-| `DocumentRegistryPort.java` | Add `findFilenameByIndexName()` method |
-| `DocumentRegistryPersistenceAdapter.java` | Implement filename lookup |
+| `CitationAssemblyService.java` | Inject `DocumentRegistryPort`; use existing `findByIndexName()` for filename fallback |
 | `ApplicationWiringConfig.java` | Wire new beans |
 | `application.yml` | Add conversation memory config (window size, compression threshold) |
 | Frontend (`QA.tsx` or NEWTON) | Minimal: 👍👎 buttons, feedback state display |
