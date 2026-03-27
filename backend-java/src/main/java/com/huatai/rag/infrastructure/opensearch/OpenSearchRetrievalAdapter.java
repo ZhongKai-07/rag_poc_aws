@@ -24,6 +24,10 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
     public interface SearchGateway {
         List<RetrievedDocument> vectorSearch(List<String> indexNames, String query, int limit, double scoreThreshold);
 
+        default List<RetrievedDocument> vectorSearch(List<String> indexNames, String query, int limit, double scoreThreshold, Map<String, String> metadataFilters) {
+            return vectorSearch(indexNames, query, limit, scoreThreshold);
+        }
+
         List<RetrievedDocument> textSearch(List<String> indexNames, String query, int limit, double scoreThreshold);
     }
 
@@ -42,14 +46,16 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
         List<RetrievedDocument> results = switch (request.searchMethod()) {
             case VECTOR -> searchGateway.vectorSearch(
                     request.indexNames(), request.query(),
-                    request.vectorLimit(), request.vectorScoreThreshold());
+                    request.vectorLimit(), request.vectorScoreThreshold(),
+                    request.metadataFilters());
             case TEXT -> searchGateway.textSearch(
                     request.indexNames(), request.query(),
                     request.textLimit(), request.textScoreThreshold());
             case MIX -> mergeUnique(
                     searchGateway.vectorSearch(
                             request.indexNames(), request.query(),
-                            request.vectorLimit(), request.vectorScoreThreshold()),
+                            request.vectorLimit(), request.vectorScoreThreshold(),
+                            request.metadataFilters()),
                     searchGateway.textSearch(
                             request.indexNames(), request.query(),
                             request.textLimit(), request.textScoreThreshold()),
@@ -87,18 +93,17 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
 
         @Override
         public List<RetrievedDocument> vectorSearch(List<String> indexNames, String query, int limit, double scoreThreshold) {
+            return vectorSearch(indexNames, query, limit, scoreThreshold, null);
+        }
+
+        @Override
+        public List<RetrievedDocument> vectorSearch(List<String> indexNames, String query, int limit, double scoreThreshold, Map<String, String> metadataFilters) {
             if (embeddingPort == null) {
                 throw new IllegalStateException("EmbeddingPort is required for vector search");
             }
 
             List<Float> queryVector = embeddingPort.embedAll(List.of(query)).get(0);
-            Map<String, Object> body = Map.of(
-                    "size", limit,
-                    "query", Map.of(
-                            "knn", Map.of(
-                                    "sentence_vector", Map.of(
-                                            "vector", queryVector,
-                                            "k", limit))));
+            Map<String, Object> body = OpenSearchQueryBuilder.buildVectorQuery(queryVector, limit, metadataFilters);
             return executeSearch(indexNames, body, scoreThreshold, true);
         }
 

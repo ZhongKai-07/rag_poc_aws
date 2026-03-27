@@ -40,7 +40,13 @@ public class OpenSearchIndexManager {
         properties.put("sentence_vector", vectorField);
         properties.put("paragraph", Map.of("type", "text"));
         properties.put("sentence", Map.of("type", "text"));
-        properties.put("metadata", Map.of("type", "object", "dynamic", true));
+        Map<String, Object> metadataProperties = new LinkedHashMap<>();
+        metadataProperties.put("counterparty", Map.of("type", "keyword"));
+        metadataProperties.put("agreement_type", Map.of("type", "keyword"));
+        metadataProperties.put("filename", Map.of("type", "keyword"));
+        metadataProperties.put("page_number", Map.of("type", "integer"));
+        metadataProperties.put("section_path", Map.of("type", "keyword"));
+        properties.put("metadata", Map.of("type", "object", "dynamic", true, "properties", metadataProperties));
 
         return Map.of(
                 "settings", Map.of("index", Map.of("knn", true)),
