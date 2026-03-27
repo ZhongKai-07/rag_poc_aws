@@ -17,6 +17,9 @@ public class RagResponse {
     @JsonProperty("rerank_documents")
     private List<SourceDocumentDto> rerankDocuments = new ArrayList<>();
 
+    @JsonProperty("citations")
+    private List<CitationDto> citations = new ArrayList<>();
+
     public String getAnswer() {
         return answer;
     }
@@ -47,5 +50,13 @@ public class RagResponse {
 
     public void setRerankDocuments(List<SourceDocumentDto> rerankDocuments) {
         this.rerankDocuments = rerankDocuments;
+    }
+
+    public List<CitationDto> getCitations() {
+        return citations;
+    }
+
+    public void setCitations(List<CitationDto> citations) {
+        this.citations = citations;
     }
 }
