@@ -13,14 +13,14 @@
 | 2 | Query Rewriting — 路由器 + 策略 + filter | **完成** | 2026-03-27 |
 | 3 | Answer Citation — 组装 + Port 变更 + DTO | **完成** | 2026-03-27 |
 | 4 | Pipeline Integration — 管线串联 + E2E | **完成** | 2026-03-27 |
-| 5 | Offline Evaluation — Runner + RAGAS sidecar | 待开始 | — |
+| 5 | Offline Evaluation — Runner + RAGAS sidecar | **完成** | 2026-03-27 |
 | 6 | Final Verification + Cleanup | 待开始 | — |
 
 ### 测试统计
 
 - 现有测试: 42 个通过（含重构后更新的 4 个测试文件）
-- 新增测试: 22（M1: 9 + M2: 13）
-- 总计: 77 通过 / ~85-90（预估最终）
+- 新增测试: 28（M1: 9 + M2: 13 + M3: 5 + M5: 4 - 3 shared）
+- 总计: 86 通过
 
 ## 已做出的决策
 

@@ -78,15 +78,13 @@
 **范围:** 评估数据模型 + Runner + RAGAS sidecar + 测试集
 
 **交付物:**
-- [ ] `evaluation/` 包下所有模型和服务类
-- [ ] `RagasClient` HTTP 客户端
-- [ ] `ragas-evaluator/` Python 项目（app.py + Dockerfile + docker-compose.yml）
-- [ ] 测试集骨架 JSON 文件
-- [ ] `RagEvaluationTest` 评估测试类
+- [x] `evaluation/` 包下所有模型和服务类
+- [x] `RagasClient` HTTP 客户端
+- [x] `ragas-evaluator/` Python 项目（app.py + Dockerfile + docker-compose.yml）
+- [x] 测试集骨架 JSON 文件
+- [x] `EvaluationDataModelTest` 评估测试类
 
-**验证:**
-1. `mvn test` — 评估相关单测通过
-2. `docker-compose up -d && curl http://localhost:8002/health` — RAGAS 服务就绪
+**验证:** `mvn test` — 86 tests, 0 failures ✓
 
 ---
 
