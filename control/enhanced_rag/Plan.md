@@ -45,13 +45,13 @@
 **范围:** Citation 组装 + Port 签名变更 + DTO + 文件名元数据注入
 
 **交付物:**
-- [ ] `CitationAssemblyService` + `PromptWithCitations`
-- [ ] `AnswerGenerationPort` 签名变更 `(String, String)`
-- [ ] `BedrockAnswerGenerationAdapter` 简化
-- [ ] `CitationDto` + `RagResponse.citations` 字段
-- [ ] `OpenSearchDocumentWriter` 注入 filename 到 metadata
+- [x] `CitationAssemblyService` + `PromptWithCitations`
+- [x] `AnswerGenerationPort` 签名变更 `(String, String)`
+- [x] `BedrockAnswerGenerationAdapter` 简化
+- [x] `CitationDto` + `RagResponse.citations` 字段
+- [x] `DocumentIngestionApplicationService` 注入 filename 到 metadata
 
-**验证:** `mvn test` — Citation 编号正确、正则提取 `[n]` 正确、null filename 降级正确
+**验证:** `mvn test` — 82 tests, 0 failures ✓
 
 **停止修复规则:** 如果 `AnswerGenerationPort` 签名变更破坏现有测试，必须在本里程碑内修复所有 fake/mock。
 
