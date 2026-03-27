@@ -52,18 +52,23 @@ public class CollateralStructuredRewriteStrategy implements QueryRewriteStrategy
 
     @Override
     public RewriteResult rewrite(String query) {
+        log.info("[Collateral] rewriting query: '{}'", query);
         try {
+            long start = System.currentTimeMillis();
             String responseText = CompletableFuture.supplyAsync(() -> callLlm(query))
                     .orTimeout(3, TimeUnit.SECONDS)
                     .join();
+            long elapsed = System.currentTimeMillis() - start;
+            log.info("[Collateral] LLM response in {}ms: '{}'", elapsed, responseText);
             return parseResponse(responseText, query);
         } catch (Exception e) {
-            log.warn("Collateral rewrite failed for query '{}': {}", query, e.getMessage());
+            log.warn("[Collateral] rewrite failed for query '{}': {}", query, e.getMessage());
             return RewriteResult.passthrough(query);
         }
     }
 
     private String callLlm(String query) {
+        log.debug("[Collateral] calling Bedrock model={}", ragProperties.getRewriteModelId());
         var response = client.converse(ConverseRequest.builder()
                 .modelId(ragProperties.getRewriteModelId())
                 .system(SystemContentBlock.builder()
@@ -92,6 +97,8 @@ public class CollateralStructuredRewriteStrategy implements QueryRewriteStrategy
             var structured = new StructuredQuery(counterparty, agreementType, businessField, fallbackQuery);
 
             String rewrittenQuery = businessField != null ? businessField : fallbackQuery;
+            log.info("[Collateral] parsed: counterparty={}, agreementType={}, businessField='{}', fallback='{}'",
+                    counterparty, agreementType, businessField, fallbackQuery);
 
             return new RewriteResult(rewrittenQuery, List.of(), structured, originalQuery);
         } catch (Exception e) {

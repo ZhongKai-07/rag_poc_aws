@@ -11,8 +11,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CitationAssemblyService {
+
+    private static final Logger log = LoggerFactory.getLogger(CitationAssemblyService.class);
 
     private static final Pattern CITATION_PATTERN = Pattern.compile("\\[(\\d+)]");
 
@@ -51,6 +55,8 @@ public class CitationAssemblyService {
             sb.append(excerpt).append("\n");
         }
 
+        log.info("[Citation] assembled {} references from {} source docs", citationMap.size(), documents.size());
+        citationMap.forEach((idx, c) -> log.debug("[Citation] [{}] file='{}' page={}", idx, c.filename(), c.pageNumber()));
         return new PromptWithCitations(sb.toString(), citationMap);
     }
 
@@ -67,6 +73,7 @@ public class CitationAssemblyService {
             }
         }
 
+        log.info("[Citation] parsed answer: found {} citation references {}", usedCitations.size(), seen);
         return new CitedAnswer(rawAnswer, usedCitations);
     }
 

@@ -18,6 +18,7 @@ import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+// Logger imported for both outer class and inner RestClientSearchGateway
 
 public class OpenSearchRetrievalAdapter implements RetrievalPort {
 
@@ -41,8 +42,12 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
         this.searchGateway = new RestClientSearchGateway(restClient, objectMapper, embeddingPort);
     }
 
+    private static final Logger log = LoggerFactory.getLogger(OpenSearchRetrievalAdapter.class);
+
     @Override
     public RetrievalResult retrieve(RetrievalRequest request) {
+        log.info("[Retrieval] indices={} method={} query='{}' filters={}",
+                request.indexNames(), request.searchMethod(), request.query(), request.metadataFilters());
         List<RetrievedDocument> results = switch (request.searchMethod()) {
             case VECTOR -> searchGateway.vectorSearch(
                     request.indexNames(), request.query(),
@@ -62,6 +67,7 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
                     request.vectorLimit() + request.textLimit());
         };
 
+        log.info("[Retrieval] returned {} documents", results.size());
         return new RetrievalResult(results, results);
     }
 

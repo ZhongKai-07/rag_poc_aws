@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public interface RagQueryApplicationService {
 
@@ -60,6 +62,7 @@ public interface RagQueryApplicationService {
     }
 
     final class Default implements RagQueryApplicationService {
+        private static final Logger log = LoggerFactory.getLogger(Default.class);
         private final RetrievalPort retrievalPort;
         private final RerankPort rerankPort;
         private final AnswerGenerationPort answerGenerationPort;
@@ -90,13 +93,22 @@ public interface RagQueryApplicationService {
 
         @Override
         public QueryResult handle(QueryCommand command) {
+            log.info("[RAG] session={} module={} indices={} query='{}'",
+                    command.sessionId(), command.module(), command.indexNames(), command.query());
+
             // 1. Query rewriting
+            long rewriteStart = System.currentTimeMillis();
             RewriteResult rewriteResult = queryRewriteRouter.rewrite(command.query(), command.module());
+            long rewriteMs = System.currentTimeMillis() - rewriteStart;
+            log.info("[RAG] rewrite: {}ms, rewritten='{}', keywords={}, structured={}",
+                    rewriteMs, rewriteResult.rewrittenQuery(), rewriteResult.keywords(),
+                    rewriteResult.structured() != null ? rewriteResult.structured() : "null");
 
             // 2. Build retrieval request (with metadata filters for Collateral)
             Map<String, String> metadataFilters = null;
             if (rewriteResult.structured() != null) {
                 metadataFilters = buildMetadataFilters(rewriteResult.structured());
+                log.info("[RAG] metadata filters: {}", metadataFilters);
             }
             var retrievalRequest = new RetrievalRequest(
                     command.indexNames(), rewriteResult.rewrittenQuery(),
@@ -104,15 +116,25 @@ public interface RagQueryApplicationService {
                     command.vecDocsNum(), command.txtDocsNum(),
                     command.vecScoreThreshold(), command.textScoreThreshold(),
                     metadataFilters);
+            long retrievalStart = System.currentTimeMillis();
             RetrievalResult retrievalResult = retrievalPort.retrieve(retrievalRequest);
+            long retrievalMs = System.currentTimeMillis() - retrievalStart;
+            log.info("[RAG] retrieval: {}ms, recall={} docs, method={}",
+                    retrievalMs, retrievalResult.recallDocuments().size(), command.searchMethod());
 
             // 3. Rerank
+            long rerankStart = System.currentTimeMillis();
             List<RetrievedDocument> rerankedDocuments = rerankPort.rerank(
                     rewriteResult.rewrittenQuery(),
                     retrievalResult.rerankDocuments(),
                     command.rerankScoreThreshold());
+            long rerankMs = System.currentTimeMillis() - rerankStart;
+            log.info("[RAG] rerank: {}ms, input={} -> output={} docs (threshold={})",
+                    rerankMs, retrievalResult.rerankDocuments().size(),
+                    rerankedDocuments.size(), command.rerankScoreThreshold());
 
             if (rerankedDocuments.isEmpty()) {
+                log.warn("[RAG] no documents survived reranking, returning fallback answer");
                 for (String indexName : command.indexNames()) {
                     questionHistoryPort.recordQuestion(indexName, command.query());
                 }
@@ -123,27 +145,38 @@ public interface RagQueryApplicationService {
             // 4. Source document selection
             List<RetrievedDocument> sourceDocuments = contextAssemblyService.selectSourceDocuments(
                     retrievalResult, rerankedDocuments);
+            log.info("[RAG] source selection: {} docs for answer generation", sourceDocuments.size());
 
             // 5. Citation assembly + answer generation
+            long answerStart = System.currentTimeMillis();
             String answer;
             List<Citation> citations = List.of();
             if (ragProperties.isCitationEnabled()) {
                 PromptWithCitations pwc = citationAssemblyService.assemble(sourceDocuments);
+                log.debug("[RAG] citation prompt assembled with {} references", pwc.citationMap().size());
                 String rawAnswer = answerGenerationPort.generateAnswer(command.query(), pwc.formattedContext());
                 CitedAnswer citedAnswer = citationAssemblyService.parseResponse(rawAnswer, pwc.citationMap());
                 answer = citedAnswer.answer();
                 citations = citedAnswer.citations();
+                log.info("[RAG] citation: {} references used in answer", citations.size());
             } else {
                 String simpleContext = sourceDocuments.stream()
                         .map(RetrievedDocument::pageContent)
                         .collect(Collectors.joining("\n"));
                 answer = answerGenerationPort.generateAnswer(command.query(), simpleContext);
+                log.info("[RAG] citation disabled, using simple context");
             }
+            long answerMs = System.currentTimeMillis() - answerStart;
+            log.info("[RAG] answer generation: {}ms, answer length={} chars", answerMs, answer.length());
 
             // 6. Record question history
             for (String indexName : command.indexNames()) {
                 questionHistoryPort.recordQuestion(indexName, command.query());
             }
+
+            log.info("[RAG] pipeline complete: rewrite={}ms + retrieval={}ms + rerank={}ms + answer={}ms = {}ms total",
+                    rewriteMs, retrievalMs, rerankMs, answerMs,
+                    rewriteMs + retrievalMs + rerankMs + answerMs);
 
             return new QueryResult(answer, sourceDocuments,
                     retrievalResult.recallDocuments(), rerankedDocuments, citations);

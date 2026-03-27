@@ -25,6 +25,7 @@ public class QueryRewriteRouter {
 
     public RewriteResult rewrite(String query, String module) {
         if (!ragProperties.isQueryRewriteEnabled()) {
+            log.info("[Rewrite] disabled by config, passthrough for module={}", module);
             return RewriteResult.passthrough(query);
         }
 
@@ -33,9 +34,12 @@ public class QueryRewriteRouter {
                     .filter(s -> s.supports(module))
                     .findFirst()
                     .orElse(defaultStrategy);
-            return selected.rewrite(query);
+            log.info("[Rewrite] module='{}' -> strategy={}", module, selected.getClass().getSimpleName());
+            RewriteResult result = selected.rewrite(query);
+            log.info("[Rewrite] '{}' -> '{}', keywords={}", query, result.rewrittenQuery(), result.keywords());
+            return result;
         } catch (Exception e) {
-            log.warn("Query rewrite failed, falling back to original query: {}", e.getMessage());
+            log.warn("[Rewrite] failed for module='{}', falling back to original: {}", module, e.getMessage());
             return RewriteResult.passthrough(query);
         }
     }

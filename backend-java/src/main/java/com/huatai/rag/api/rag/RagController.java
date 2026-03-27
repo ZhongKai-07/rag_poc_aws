@@ -9,12 +9,16 @@ import com.huatai.rag.application.rag.RagQueryApplicationService;
 import com.huatai.rag.domain.rag.Citation;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class RagController {
+
+    private static final Logger log = LoggerFactory.getLogger(RagController.class);
 
     private final RagQueryApplicationService ragQueryApplicationService;
 
@@ -24,6 +28,8 @@ public class RagController {
 
     @PostMapping("/rag_answer")
     public RagResponse ragAnswer(@Valid @RequestBody RagRequest request) {
+        log.info("[API] POST /rag_answer session={} module={} indices={} query='{}'",
+                request.getSessionId(), request.getModule(), request.getIndexNames(), request.getQuery());
         RagQueryApplicationService.QueryResult result = ragQueryApplicationService.handle(new RagQueryApplicationService.QueryCommand(
                 request.getSessionId(),
                 request.getIndexNames(),
@@ -42,6 +48,8 @@ public class RagController {
         response.setRecallDocuments(result.recallDocuments().stream().map(this::toRecallDocument).toList());
         response.setRerankDocuments(result.rerankDocuments().stream().map(this::toSourceDocument).toList());
         response.setCitations(result.citations().stream().map(this::toCitationDto).toList());
+        log.info("[API] response: answer_len={}, sources={}, citations={}",
+                result.answer().length(), result.sourceDocuments().size(), result.citations().size());
         return response;
     }
 

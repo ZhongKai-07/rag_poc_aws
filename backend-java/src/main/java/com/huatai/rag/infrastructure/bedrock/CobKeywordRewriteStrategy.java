@@ -51,18 +51,23 @@ public class CobKeywordRewriteStrategy implements QueryRewriteStrategy {
 
     @Override
     public RewriteResult rewrite(String query) {
+        log.info("[COB] rewriting query: '{}'", query);
         try {
+            long start = System.currentTimeMillis();
             String responseText = CompletableFuture.supplyAsync(() -> callLlm(query))
                     .orTimeout(3, TimeUnit.SECONDS)
                     .join();
+            long elapsed = System.currentTimeMillis() - start;
+            log.info("[COB] LLM response in {}ms: '{}'", elapsed, responseText);
             return parseResponse(responseText, query);
         } catch (Exception e) {
-            log.warn("COB rewrite failed for query '{}': {}", query, e.getMessage());
+            log.warn("[COB] rewrite failed for query '{}': {}", query, e.getMessage());
             return RewriteResult.passthrough(query);
         }
     }
 
     private String callLlm(String query) {
+        log.debug("[COB] calling Bedrock model={}", ragProperties.getRewriteModelId());
         var response = client.converse(ConverseRequest.builder()
                 .modelId(ragProperties.getRewriteModelId())
                 .system(SystemContentBlock.builder()
