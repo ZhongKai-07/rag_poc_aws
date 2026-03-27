@@ -41,6 +41,9 @@ huatai:
     embedding-model-id: ${RAG_EMBEDDING_MODEL_ID:amazon.titan-embed-text-v1}
     rerank-model-id: ${RAG_RERANK_MODEL_ID:cohere.rerank-v3-5:0}
     answer-model-id: ${RAG_ANSWER_MODEL_ID:qwen.qwen3-235b-a22b-2507-v1:0}
+    query-rewrite-enabled: ${RAG_QUERY_REWRITE_ENABLED:true}
+    citation-enabled: ${RAG_CITATION_ENABLED:true}
+    rewrite-model-id: ${RAG_REWRITE_MODEL_ID:amazon.nova-lite-v1:0}
 
 server:
   port: 8001

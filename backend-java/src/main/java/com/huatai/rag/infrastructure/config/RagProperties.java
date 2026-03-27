@@ -15,6 +15,9 @@ public class RagProperties {
     private String embeddingModelId = "amazon.titan-embed-text-v1";
     private String rerankModelId = "cohere.rerank-v3-5:0";
     private String answerModelId = "qwen.qwen3-235b-a22b-2507-v1:0";
+    private boolean queryRewriteEnabled = true;
+    private boolean citationEnabled = true;
+    private String rewriteModelId = "amazon.nova-lite-v1:0";
 
     public double getVecScoreThreshold() {
         return vecScoreThreshold;
@@ -86,5 +89,29 @@ public class RagProperties {
 
     public void setAnswerModelId(String answerModelId) {
         this.answerModelId = answerModelId;
+    }
+
+    public boolean isQueryRewriteEnabled() {
+        return queryRewriteEnabled;
+    }
+
+    public void setQueryRewriteEnabled(boolean queryRewriteEnabled) {
+        this.queryRewriteEnabled = queryRewriteEnabled;
+    }
+
+    public boolean isCitationEnabled() {
+        return citationEnabled;
+    }
+
+    public void setCitationEnabled(boolean citationEnabled) {
+        this.citationEnabled = citationEnabled;
+    }
+
+    public String getRewriteModelId() {
+        return rewriteModelId;
+    }
+
+    public void setRewriteModelId(String rewriteModelId) {
+        this.rewriteModelId = rewriteModelId;
     }
 }
