@@ -17,7 +17,9 @@ public class RagProperties {
     private String answerModelId = "qwen.qwen3-235b-a22b-2507-v1:0";
     private boolean queryRewriteEnabled = true;
     private boolean citationEnabled = true;
-    private String rewriteModelId = "amazon.nova-lite-v1:0";
+    // amazon.nova-lite-v1:0 is cross-region only in us-west-2, needs inference profile ARN
+    // Using haiku which supports on-demand throughput
+    private String rewriteModelId = "qwen.qwen3-235b-a22b-2507-v1:0";
 
     public double getVecScoreThreshold() {
         return vecScoreThreshold;

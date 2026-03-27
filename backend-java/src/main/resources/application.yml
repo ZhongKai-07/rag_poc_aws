@@ -43,7 +43,8 @@ huatai:
     answer-model-id: ${RAG_ANSWER_MODEL_ID:qwen.qwen3-235b-a22b-2507-v1:0}
     query-rewrite-enabled: ${RAG_QUERY_REWRITE_ENABLED:true}
     citation-enabled: ${RAG_CITATION_ENABLED:true}
-    rewrite-model-id: ${RAG_REWRITE_MODEL_ID:amazon.nova-lite-v1:0}
+    # rewrite-model-id: ${RAG_REWRITE_MODEL_ID:anthropic.claude-3-haiku-20240307-v1:0}
+    rewrite-model-id: ${RAG_REWRITE_MODEL_ID:qwen.qwen3-235b-a22b-2507-v1:0}
 
 server:
   port: 8001
