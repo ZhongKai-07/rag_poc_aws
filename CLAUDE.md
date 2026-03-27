@@ -6,11 +6,13 @@ Repository-wide guidance for Claude Code and other coding agents.
 
 RAG 知识库问答系统，正在从 Python 后端 (`api/`) 向 Spring Boot 后端 (`backend-java/`) 迁移。
 
-- **Java 后端**：运行在端口 `8001`，E2E RAG 管线已验证 (2026-03-22)，42 个测试通过。
+- **Java 后端**：运行在端口 `8001`，Enhanced RAG Batch A 已实现 (2026-03-27)，86 个测试通过。
 - **Python 后端**：保留为行为基线和回滚目标，不可删除。
 - **前端**：`frontend/` 为当前生产前端；`NEWTON/` 为产品设计的目标聊天式 UI，迁移计划已确认。
-- **Active work**：Enhanced RAG Batch A — Query 改写 + 答案溯源 + 离线评估。见 `control/enhanced_rag/`。
+- **Batch A 完成**：Query 改写（COB 关键词 + Collateral 结构化）、答案溯源（Citation）、离线评估（RAGAS sidecar）。Feature flags: `rag.query-rewrite.enabled`, `rag.citation.enabled`。
+- **RAGAS sidecar**：`ragas-evaluator/`（Python FastAPI + Docker），端口 8002。
 - **Pending work**：docling-java integration — 添加 docling 作为 BDA 之外的替代文档解析器。见 `control/docling/`。
+- **Next**：Enhanced RAG Batch B — 多轮对话 + 流式输出 + Spring AI 迁移。
 - 不要将此仓库当作"仅 Python"项目。Java 后端尚未完全切换。
 
 ## Source of Truth Documents
@@ -39,6 +41,7 @@ RAG 知识库问答系统，正在从 Python 后端 (`api/`) 向 Spring Boot 后
 ├── api/                    # Legacy Python FastAPI backend (baseline/rollback)
 ├── backend-java/           # Spring Boot migration target (active development)
 ├── frontend/               # React + TypeScript + Vite frontend (current production)
+├── ragas-evaluator/        # RAGAS Python sidecar (FastAPI + Docker, port 8002)
 ├── NEWTON/                 # Product demo frontend (migration target UI)
 ├── control/                # Migration control documents (source of truth)
 │   ├── Prompt.md / Plan.md / Implement.md / Documentation.md
@@ -76,15 +79,19 @@ backend-java/
     │   │   ├── common/                     #   ContextAssemblyService
     │   │   ├── history/                    #   QuestionHistoryApplicationService
     │   │   ├── ingestion/                  #   DocumentIngestionApplicationService
-    │   │   ├── rag/                        #   RagQueryApplicationService
+    │   │   ├── rag/                        #   RagQueryApplicationService, QueryRewriteRouter, CitationAssemblyService
     │   │   └── registry/                   #   ProcessedFileQueryApplicationService
+    │   ├── evaluation/                     # Offline Evaluation (independent module)
+    │   │   ├── model/                      #   TestCase, TraceRecord, EvaluationReport
+    │   │   ├── application/                #   EvaluationRunner, ReportGenerator, TestDatasetLoader
+    │   │   └── infrastructure/             #   RagasClient (HTTP → Python sidecar)
     │   ├── domain/                         # Domain Model (pure, no AWS deps)
     │   │   ├── bda/                        #   BdaParseResultPort, BdaParseResultRecord
     │   │   ├── document/                   #   DocumentFileRecord, DocumentRegistryPort, IndexNamingPolicy
     │   │   ├── history/                    #   QuestionHistoryPort
     │   │   ├── parser/                     #   DocumentParser, ParsedDocument/Page/Chunk/Asset
-    │   │   ├── rag/                        #   AnswerGenerationPort
-    │   │   └── retrieval/                  #   EmbeddingPort, RerankPort, RetrievalPort, SearchMethod
+    │   │   ├── rag/                        #   AnswerGenerationPort, QueryRewriteStrategy, RewriteResult, Citation, CitedAnswer
+    │   │   └── retrieval/                  #   EmbeddingPort, RerankPort, RetrievalPort, RetrievalRequest, SearchMethod
     │   └── infrastructure/                 # External Service Adapters
     │       ├── bda/                        #   BdaClient, BdaDocumentParserAdapter, BdaResultMapper
     │       ├── bedrock/                    #   BedrockEmbeddingAdapter, BedrockRerankAdapter,

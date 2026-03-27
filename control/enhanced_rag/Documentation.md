@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-**阶段:** 设计完成，待开始实施
+**阶段:** Batch A 实施完成
 **日期:** 2026-03-27
 
 ### 里程碑进度
@@ -14,7 +14,7 @@
 | 3 | Answer Citation — 组装 + Port 变更 + DTO | **完成** | 2026-03-27 |
 | 4 | Pipeline Integration — 管线串联 + E2E | **完成** | 2026-03-27 |
 | 5 | Offline Evaluation — Runner + RAGAS sidecar | **完成** | 2026-03-27 |
-| 6 | Final Verification + Cleanup | 待开始 | — |
+| 6 | Final Verification + Cleanup | **完成** | 2026-03-27 |
 
 ### 测试统计
 
