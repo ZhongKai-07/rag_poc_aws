@@ -120,7 +120,8 @@ class ApiLayerIntegrationTest {
                               "score": 91.2,
                               "rerank_score": 0.93
                             }
-                          ]
+                          ],
+                          "citations": []
                         }
                         """, true));
 

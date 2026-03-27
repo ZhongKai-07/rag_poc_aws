@@ -133,9 +133,18 @@ public interface DocumentIngestionApplicationService {
                 List<List<Float>> embeddings = sentences.isEmpty() ? List.of() : embeddingPort.embedAll(sentences);
                 log.info("Generated {} embeddings for {}", embeddings.size(), command.filename());
                 if (!parsedDocument.chunks().isEmpty() && !embeddings.isEmpty()) {
-                    log.info("Writing {} chunks into OpenSearch index {}", parsedDocument.chunks().size(), indexName);
+                    List<ParsedChunk> enrichedChunks = parsedDocument.chunks().stream()
+                            .map(chunk -> {
+                                var metadata = new LinkedHashMap<>(chunk.metadata());
+                                metadata.put("filename", command.filename());
+                                return new ParsedChunk(chunk.chunkId(), chunk.pageNumber(),
+                                        chunk.paragraphText(), chunk.sentenceText(),
+                                        chunk.sectionPath(), chunk.assets(), metadata);
+                            })
+                            .toList();
+                    log.info("Writing {} chunks into OpenSearch index {}", enrichedChunks.size(), indexName);
                     documentChunkWriter.ensureIndexExists(indexName, embeddings.get(0).size());
-                    documentChunkWriter.writeChunks(indexName, parsedDocument.chunks(), embeddings);
+                    documentChunkWriter.writeChunks(indexName, enrichedChunks, embeddings);
                 } else {
                     log.warn("Skipping OpenSearch write for {} because chunks or embeddings were empty", command.filename());
                 }

@@ -73,7 +73,11 @@ class DocumentIngestionApplicationServiceTest {
         assertThat(embeddingPort.embeddedTexts).containsExactly("The client agreement sets out onboarding steps.");
         assertThat(indexWriter.ensuredIndexName).isEqualTo("2374dcf7");
         assertThat(indexWriter.ensuredVectorDimension).isEqualTo(3);
-        assertThat(indexWriter.writtenChunks).containsExactly(chunk);
+        ParsedChunk enrichedChunk = new ParsedChunk(
+                chunk.chunkId(), chunk.pageNumber(), chunk.paragraphText(), chunk.sentenceText(),
+                chunk.sectionPath(), chunk.assets(),
+                Map.of("filename", "PRC Client.pdf", "source", "PRC Client.pdf", "chunk_id", "chunk-1"));
+        assertThat(indexWriter.writtenChunks).containsExactly(enrichedChunk);
         assertThat(registryPort.documentStatuses)
                 .extracting(DocumentFileRecord::status)
                 .containsExactly(IngestionStatus.PROCESSING, IngestionStatus.COMPLETED);
