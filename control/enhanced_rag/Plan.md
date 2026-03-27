@@ -62,14 +62,12 @@
 **范围:** 管线串联 + 端到端验证
 
 **交付物:**
-- [ ] `RagQueryApplicationService.Default.handle()` 集成 query rewrite + citation
-- [ ] `QueryResult` 新增 `citations` 字段
-- [ ] `ApplicationWiringConfig` 装配新 bean
-- [ ] `RagController` 映射 citations 到 DTO
+- [x] `RagQueryApplicationService.Default.handle()` 集成 query rewrite + citation
+- [x] `QueryResult` 新增 `citations` 字段
+- [x] `ApplicationWiringConfig` 装配新 bean
+- [x] `RagController` 映射 citations 到 DTO
 
-**验证:**
-1. `mvn test` — 全量通过
-2. `mvn spring-boot:run` — 启动无报错，`/health` 200
+**验证:** `mvn test` — 82 tests, 0 failures ✓
 
 **停止修复规则:** 如果集成后有任何测试回归，必须在本里程碑内修复后才能继续。
 

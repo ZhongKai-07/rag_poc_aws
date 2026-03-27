@@ -12,7 +12,7 @@
 | 1 | Foundation — 域值对象 + 配置 | **完成** | 2026-03-27 |
 | 2 | Query Rewriting — 路由器 + 策略 + filter | **完成** | 2026-03-27 |
 | 3 | Answer Citation — 组装 + Port 变更 + DTO | **完成** | 2026-03-27 |
-| 4 | Pipeline Integration — 管线串联 + E2E | 待开始 | — |
+| 4 | Pipeline Integration — 管线串联 + E2E | **完成** | 2026-03-27 |
 | 5 | Offline Evaluation — Runner + RAGAS sidecar | 待开始 | — |
 | 6 | Final Verification + Cleanup | 待开始 | — |
 
