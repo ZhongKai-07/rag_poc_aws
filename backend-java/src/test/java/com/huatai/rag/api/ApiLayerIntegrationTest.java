@@ -374,7 +374,7 @@ class ApiLayerIntegrationTest {
         private RuntimeException failure;
 
         @Override
-        public String generateAnswer(String query, List<RetrievedDocument> sourceDocuments) {
+        public String generateAnswer(String query, String formattedContext) {
             if (failure != null) {
                 throw failure;
             }

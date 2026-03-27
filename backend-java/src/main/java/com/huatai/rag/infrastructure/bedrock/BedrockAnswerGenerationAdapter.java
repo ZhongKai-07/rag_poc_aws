@@ -1,10 +1,8 @@
 package com.huatai.rag.infrastructure.bedrock;
 
 import com.huatai.rag.domain.rag.AnswerGenerationPort;
-import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import com.huatai.rag.infrastructure.config.RagProperties;
 import com.huatai.rag.infrastructure.support.RetryUtils;
-import java.util.List;
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient;
 import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
 import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole;
@@ -32,14 +30,14 @@ public class BedrockAnswerGenerationAdapter implements AnswerGenerationPort {
     }
 
     @Override
-    public String generateAnswer(String query, List<RetrievedDocument> sourceDocuments) {
-        return retryUtils.executeWithRetry(() -> invoke(query, sourceDocuments),
+    public String generateAnswer(String query, String formattedContext) {
+        return retryUtils.executeWithRetry(() -> invoke(query, formattedContext),
                 ragProperties.getRetryMaxAttempts(),
                 ragProperties.getRetryBackoff());
     }
 
-    private String invoke(String query, List<RetrievedDocument> sourceDocuments) {
-        String userContent = promptTemplateFactory.buildContextFirstPrompt(query, sourceDocuments);
+    private String invoke(String query, String formattedContext) {
+        String userContent = promptTemplateFactory.buildContextFirstPrompt(query, formattedContext);
         String systemPrompt = promptTemplateFactory.buildSystemPrompt();
 
         var response = bedrockRuntimeClient.converse(ConverseRequest.builder()

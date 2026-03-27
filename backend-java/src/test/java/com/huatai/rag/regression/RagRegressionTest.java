@@ -206,10 +206,8 @@ class RagRegressionTest {
 
     private static final class FixtureAnswerGenerationPort implements AnswerGenerationPort {
         @Override
-        public String generateAnswer(String query, List<RetrievedDocument> sourceDocuments) {
-            return sourceDocuments.stream()
-                    .map(RetrievedDocument::pageContent)
-                    .collect(Collectors.joining(" "));
+        public String generateAnswer(String query, String formattedContext) {
+            return formattedContext;
         }
     }
 
@@ -217,7 +215,7 @@ class RagRegressionTest {
         private int invocationCount;
 
         @Override
-        public String generateAnswer(String query, List<RetrievedDocument> sourceDocuments) {
+        public String generateAnswer(String query, String formattedContext) {
             invocationCount++;
             return "should-not-be-used";
         }

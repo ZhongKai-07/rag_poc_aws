@@ -1,8 +1,5 @@
 package com.huatai.rag.infrastructure.bedrock;
 
-import com.huatai.rag.domain.retrieval.RetrievedDocument;
-import java.util.List;
-
 public class PromptTemplateFactory {
 
     public String buildSystemPrompt() {
@@ -18,14 +15,10 @@ public class PromptTemplateFactory {
                 """.formatted(question);
     }
 
-    public String buildContextFirstPrompt(String question, List<RetrievedDocument> sourceDocuments) {
+    public String buildContextFirstPrompt(String question, String formattedContext) {
         StringBuilder builder = new StringBuilder();
-        if (!sourceDocuments.isEmpty()) {
-            builder.append("相关文档如下:\n");
-            for (RetrievedDocument document : sourceDocuments) {
-                builder.append(document.pageContent()).append("\n");
-            }
-            builder.append("\n");
+        if (formattedContext != null && !formattedContext.isEmpty()) {
+            builder.append(formattedContext).append("\n");
         }
         builder.append(buildUserPrompt(question));
         return builder.toString();

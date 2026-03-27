@@ -97,7 +97,10 @@ public interface RagQueryApplicationService {
             List<RetrievedDocument> sourceDocuments = contextAssemblyService.selectSourceDocuments(
                     retrievalResult,
                     rerankedDocuments);
-            String answer = answerGenerationPort.generateAnswer(command.query(), sourceDocuments);
+            String context = sourceDocuments.stream()
+                    .map(RetrievedDocument::pageContent)
+                    .collect(java.util.stream.Collectors.joining("\n"));
+            String answer = answerGenerationPort.generateAnswer(command.query(), context);
 
             for (String indexName : command.indexNames()) {
                 questionHistoryPort.recordQuestion(indexName, command.query());

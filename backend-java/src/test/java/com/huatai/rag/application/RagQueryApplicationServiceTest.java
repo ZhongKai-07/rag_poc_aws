@@ -120,7 +120,7 @@ class RagQueryApplicationServiceTest {
                 this.rerankQuery = query;
                 return rerankedDocuments;
             };
-            this.answerGenerationPort = (query, sourceDocuments) -> answer;
+            this.answerGenerationPort = (query, formattedContext) -> answer;
         }
     }
 
