@@ -240,6 +240,8 @@ Index Naming: md5(filename)[:8] (Python-compatible)
 |----------|---------|
 | `docs/superpowers/plans/2026-03-26-frontend-to-newton-migration.md` | frontend/ → NEWTON UI 迁移计划 |
 | `docs/superpowers/plans/2026-03-26-enhanced-rag-batch-a-plan.md` | Enhanced RAG 批次 A 计划 |
+| `docs/superpowers/specs/2026-03-28-enhanced-rag-batch-b-design.md` | Enhanced RAG 批次 B 设计规格 |
+| `docs/superpowers/plans/2026-03-28-enhanced-rag-batch-b-plan.md` | Enhanced RAG 批次 B 实施计划 |
 | `docs/superpowers/plans/2026-03-23-bda-observability.md` | BDA 观测性实现计划 |
 | `docs/superpowers/plans/2026-03-19-springboot-rag-migration-layered-plan.md` | Spring Boot 分层迁移计划 |
 | `docs/superpowers/plans/2026-03-19-migration-cutover-checklist.md` | 前端切换检查清单 |
