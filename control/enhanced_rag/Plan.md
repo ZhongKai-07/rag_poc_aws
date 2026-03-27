@@ -11,13 +11,13 @@
 **范围:** 域值对象 + 配置 + RetrievalPort 重构
 
 **交付物:**
-- [ ] `RewriteResult`, `StructuredQuery`, `QueryRewriteStrategy` 域对象
-- [ ] `Citation`, `CitedAnswer` 域对象
-- [ ] `RetrievalRequest` 值对象 + `RetrievalPort` 单参数签名
-- [ ] `RagProperties` 新增 feature flags + rewrite model ID
-- [ ] `application.yml` 新增配置项
+- [x] `RewriteResult`, `StructuredQuery`, `QueryRewriteStrategy` 域对象
+- [x] `Citation`, `CitedAnswer` 域对象
+- [x] `RetrievalRequest` 值对象 + `RetrievalPort` 单参数签名
+- [x] `RagProperties` 新增 feature flags + rewrite model ID
+- [x] `application.yml` 新增配置项
 
-**验证:** `mvn test` — 所有现有测试 + 新增值对象测试通过
+**验证:** `mvn test` — 64 tests, 0 failures ✓
 
 **停止修复规则:** 如果 `RetrievalPort` 签名变更导致现有测试编译失败，必须在本里程碑内修复所有调用方。
 
