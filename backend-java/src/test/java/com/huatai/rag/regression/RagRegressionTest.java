@@ -3,7 +3,11 @@ package com.huatai.rag.regression;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.huatai.rag.application.common.ContextAssemblyService;
+import com.huatai.rag.application.rag.CitationAssemblyService;
+import com.huatai.rag.application.rag.QueryRewriteRouter;
 import com.huatai.rag.application.rag.RagQueryApplicationService;
+import com.huatai.rag.domain.rag.RewriteResult;
+import com.huatai.rag.infrastructure.config.RagProperties;
 import com.huatai.rag.domain.history.QuestionHistoryPort;
 import com.huatai.rag.domain.rag.AnswerGenerationPort;
 import com.huatai.rag.domain.retrieval.RetrievalPort;
@@ -32,12 +36,21 @@ class RagRegressionTest {
     void baselineQuestionFixturePreservesAnswerKeywordsSourcePresenceAndHistoryFanOut() throws IOException {
         List<RegressionCase> cases = RegressionCase.loadFromClasspath(QUESTIONS_FIXTURE);
         FakeQuestionHistoryPort questionHistoryPort = new FakeQuestionHistoryPort();
+        var ragProps = new RagProperties();
+        com.huatai.rag.domain.rag.QueryRewriteStrategy passthroughStrategy = new com.huatai.rag.domain.rag.QueryRewriteStrategy() {
+            public boolean supports(String module) { return true; }
+            public RewriteResult rewrite(String query) { return RewriteResult.passthrough(query); }
+        };
+        var router = new QueryRewriteRouter(List.of(), passthroughStrategy, ragProps);
         RagQueryApplicationService.Default service = new RagQueryApplicationService.Default(
                 new FixtureBackedRetrievalPort(cases),
                 new DeterministicRerankPort(),
                 new FixtureAnswerGenerationPort(),
                 questionHistoryPort,
-                new ContextAssemblyService());
+                new ContextAssemblyService(),
+                router,
+                new CitationAssemblyService(),
+                ragProps);
 
         for (RegressionCase regressionCase : cases) {
             List<String> indexNames = regressionCase.indexNames();
@@ -85,12 +98,21 @@ class RagRegressionTest {
                                 Map.of("source", "(2) OTCD - ISDA.pdf"))));
         RerankPort rerankPort = (query, documents, rerankScoreThreshold) -> List.of();
 
+        var ragProps2 = new RagProperties();
+        com.huatai.rag.domain.rag.QueryRewriteStrategy passthroughStrategy2 = new com.huatai.rag.domain.rag.QueryRewriteStrategy() {
+            public boolean supports(String module) { return true; }
+            public RewriteResult rewrite(String query) { return RewriteResult.passthrough(query); }
+        };
+        var router2 = new QueryRewriteRouter(List.of(), passthroughStrategy2, ragProps2);
         RagQueryApplicationService.Default service = new RagQueryApplicationService.Default(
                 retrievalPort,
                 rerankPort,
                 answerGenerationPort,
                 new FakeQuestionHistoryPort(),
-                new ContextAssemblyService());
+                new ContextAssemblyService(),
+                router2,
+                new CitationAssemblyService(),
+                ragProps2);
 
         RagQueryApplicationService.QueryResult result = service.handle(new RagQueryApplicationService.QueryCommand(
                 "regression-session",

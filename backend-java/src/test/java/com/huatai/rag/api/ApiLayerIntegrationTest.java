@@ -300,18 +300,49 @@ class ApiLayerIntegrationTest {
         }
 
         @Bean
+        com.huatai.rag.infrastructure.config.RagProperties ragProperties() {
+            return new com.huatai.rag.infrastructure.config.RagProperties();
+        }
+
+        @Bean
+        com.huatai.rag.application.rag.QueryRewriteRouter queryRewriteRouter(
+                com.huatai.rag.infrastructure.config.RagProperties ragProperties) {
+            com.huatai.rag.domain.rag.QueryRewriteStrategy passthrough = new com.huatai.rag.domain.rag.QueryRewriteStrategy() {
+                public boolean supports(String module) { return true; }
+                public com.huatai.rag.domain.rag.RewriteResult rewrite(String query) {
+                    return com.huatai.rag.domain.rag.RewriteResult.passthrough(query);
+                }
+            };
+            return new com.huatai.rag.application.rag.QueryRewriteRouter(
+                    java.util.List.of(),
+                    passthrough,
+                    ragProperties);
+        }
+
+        @Bean
+        com.huatai.rag.application.rag.CitationAssemblyService citationAssemblyService() {
+            return new com.huatai.rag.application.rag.CitationAssemblyService();
+        }
+
+        @Bean
         RagQueryApplicationService ragQueryApplicationService(
                 FakeRetrievalPort retrievalPort,
                 FakeRerankPort rerankPort,
                 FakeAnswerGenerationPort answerGenerationPort,
                 FakeQuestionHistoryPort questionHistoryPort,
-                ContextAssemblyService contextAssemblyService) {
+                ContextAssemblyService contextAssemblyService,
+                com.huatai.rag.application.rag.QueryRewriteRouter queryRewriteRouter,
+                com.huatai.rag.application.rag.CitationAssemblyService citationAssemblyService,
+                com.huatai.rag.infrastructure.config.RagProperties ragProperties) {
             return new RagQueryApplicationService.Default(
                     retrievalPort,
                     rerankPort,
                     answerGenerationPort,
                     questionHistoryPort,
-                    contextAssemblyService);
+                    contextAssemblyService,
+                    queryRewriteRouter,
+                    citationAssemblyService,
+                    ragProperties);
         }
 
         @Bean

@@ -6,7 +6,10 @@ import com.huatai.rag.application.common.ContextAssemblyService;
 import com.huatai.rag.application.history.QuestionHistoryApplicationService;
 import com.huatai.rag.application.ingestion.DocumentIngestionApplicationService;
 import com.huatai.rag.application.registry.ProcessedFileQueryApplicationService;
+import com.huatai.rag.application.rag.CitationAssemblyService;
+import com.huatai.rag.application.rag.QueryRewriteRouter;
 import com.huatai.rag.application.rag.RagQueryApplicationService;
+import com.huatai.rag.domain.rag.QueryRewriteStrategy;
 import com.huatai.rag.domain.bda.BdaParseResultPort;
 import com.huatai.rag.domain.document.DocumentRegistryPort;
 import com.huatai.rag.domain.history.QuestionHistoryPort;
@@ -21,6 +24,8 @@ import com.huatai.rag.infrastructure.bda.BdaResultMapper;
 import com.huatai.rag.infrastructure.bedrock.BedrockAnswerGenerationAdapter;
 import com.huatai.rag.infrastructure.bedrock.BedrockEmbeddingAdapter;
 import com.huatai.rag.infrastructure.bedrock.BedrockRerankAdapter;
+import com.huatai.rag.infrastructure.bedrock.CobKeywordRewriteStrategy;
+import com.huatai.rag.infrastructure.bedrock.CollateralStructuredRewriteStrategy;
 import com.huatai.rag.infrastructure.bedrock.PromptTemplateFactory;
 import com.huatai.rag.infrastructure.opensearch.OpenSearchChunkMapper;
 import com.huatai.rag.infrastructure.opensearch.OpenSearchDocumentChunkWriter;
@@ -174,18 +179,49 @@ public class ApplicationWiringConfig {
     }
 
     @Bean
+    public CobKeywordRewriteStrategy cobKeywordRewriteStrategy(
+            BedrockRuntimeClient bedrockRuntimeClient, RagProperties ragProperties) {
+        return new CobKeywordRewriteStrategy(bedrockRuntimeClient, ragProperties);
+    }
+
+    @Bean
+    public CollateralStructuredRewriteStrategy collateralStructuredRewriteStrategy(
+            BedrockRuntimeClient bedrockRuntimeClient, RagProperties ragProperties) {
+        return new CollateralStructuredRewriteStrategy(bedrockRuntimeClient, ragProperties);
+    }
+
+    @Bean
+    public QueryRewriteRouter queryRewriteRouter(
+            java.util.List<QueryRewriteStrategy> strategies,
+            CobKeywordRewriteStrategy defaultStrategy,
+            RagProperties ragProperties) {
+        return new QueryRewriteRouter(strategies, defaultStrategy, ragProperties);
+    }
+
+    @Bean
+    public CitationAssemblyService citationAssemblyService() {
+        return new CitationAssemblyService();
+    }
+
+    @Bean
     public RagQueryApplicationService ragQueryApplicationService(
             RetrievalPort retrievalPort,
             RerankPort rerankPort,
             AnswerGenerationPort answerGenerationPort,
             QuestionHistoryPort questionHistoryPort,
-            ContextAssemblyService contextAssemblyService) {
+            ContextAssemblyService contextAssemblyService,
+            QueryRewriteRouter queryRewriteRouter,
+            CitationAssemblyService citationAssemblyService,
+            RagProperties ragProperties) {
         return new RagQueryApplicationService.Default(
                 retrievalPort,
                 rerankPort,
                 answerGenerationPort,
                 questionHistoryPort,
-                contextAssemblyService);
+                contextAssemblyService,
+                queryRewriteRouter,
+                citationAssemblyService,
+                ragProperties);
     }
 
     @Bean

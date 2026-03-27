@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.huatai.rag.application.common.ContextAssemblyService;
 import com.huatai.rag.application.history.QuestionHistoryApplicationService;
+import com.huatai.rag.application.rag.CitationAssemblyService;
+import com.huatai.rag.application.rag.QueryRewriteRouter;
 import com.huatai.rag.application.rag.RagQueryApplicationService;
+import com.huatai.rag.infrastructure.config.RagProperties;
 import com.huatai.rag.domain.history.QuestionHistoryPort;
 import com.huatai.rag.domain.retrieval.RetrievalPort;
 import com.huatai.rag.domain.retrieval.RetrievalRequest;
@@ -40,12 +43,23 @@ class RagQueryApplicationServiceTest {
                 new RetrievedDocument(recallOne.pageContent(), recallOne.score(), 0.93, recallOne.metadata()));
         dependencies.answer = "Answer assembled from reranked context";
 
+        var ragProps = new RagProperties();
+        com.huatai.rag.domain.rag.QueryRewriteStrategy passthrough = new com.huatai.rag.domain.rag.QueryRewriteStrategy() {
+            public boolean supports(String module) { return true; }
+            public com.huatai.rag.domain.rag.RewriteResult rewrite(String query) {
+                return com.huatai.rag.domain.rag.RewriteResult.passthrough(query);
+            }
+        };
+        var router = new QueryRewriteRouter(List.of(), passthrough, ragProps);
         RagQueryApplicationService.Default service = new RagQueryApplicationService.Default(
                 dependencies.retrievalPort,
                 dependencies.rerankPort,
                 dependencies.answerGenerationPort,
                 questionHistoryPort,
-                new ContextAssemblyService());
+                new ContextAssemblyService(),
+                router,
+                new CitationAssemblyService(),
+                ragProps);
 
         RagQueryApplicationService.QueryResult result = service.handle(new RagQueryApplicationService.QueryCommand(
                 "baseline-session-001",

@@ -75,7 +75,8 @@ class RagControllerContractTest {
                                         "The ISDA and CSA terms are maintained in the same source document for this baseline sample.",
                                         86.4,
                                         0.88,
-                                        Map.of()))));
+                                        Map.of())),
+                        List.of()));
 
         mockMvc.perform(post("/rag_answer")
                         .contentType(APPLICATION_JSON)

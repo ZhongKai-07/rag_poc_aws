@@ -1,11 +1,12 @@
 package com.huatai.rag.api.rag;
 
+import com.huatai.rag.api.rag.dto.CitationDto;
 import com.huatai.rag.api.rag.dto.RagRequest;
 import com.huatai.rag.api.rag.dto.RagResponse;
 import com.huatai.rag.api.rag.dto.RecallDocumentDto;
 import com.huatai.rag.api.rag.dto.SourceDocumentDto;
-import com.huatai.rag.api.rag.dto.RagResponse;
 import com.huatai.rag.application.rag.RagQueryApplicationService;
+import com.huatai.rag.domain.rag.Citation;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,6 +41,7 @@ public class RagController {
         response.setSourceDocuments(result.sourceDocuments().stream().map(this::toSourceDocument).toList());
         response.setRecallDocuments(result.recallDocuments().stream().map(this::toRecallDocument).toList());
         response.setRerankDocuments(result.rerankDocuments().stream().map(this::toSourceDocument).toList());
+        response.setCitations(result.citations().stream().map(this::toCitationDto).toList());
         return response;
     }
 
@@ -56,5 +58,14 @@ public class RagController {
         dto.setPageContent(document.pageContent());
         dto.setScore(document.score());
         return dto;
+    }
+
+    private CitationDto toCitationDto(Citation citation) {
+        return new CitationDto(
+                citation.index(),
+                citation.filename(),
+                citation.pageNumber(),
+                citation.sectionPath(),
+                citation.excerpt());
     }
 }

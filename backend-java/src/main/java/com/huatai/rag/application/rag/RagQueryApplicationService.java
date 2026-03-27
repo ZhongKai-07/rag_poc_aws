@@ -3,14 +3,22 @@ package com.huatai.rag.application.rag;
 import com.huatai.rag.application.common.ContextAssemblyService;
 import com.huatai.rag.domain.history.QuestionHistoryPort;
 import com.huatai.rag.domain.rag.AnswerGenerationPort;
+import com.huatai.rag.domain.rag.Citation;
+import com.huatai.rag.domain.rag.CitedAnswer;
+import com.huatai.rag.domain.rag.RewriteResult;
+import com.huatai.rag.domain.rag.StructuredQuery;
 import com.huatai.rag.domain.retrieval.RetrievalPort;
 import com.huatai.rag.domain.retrieval.RetrievalRequest;
 import com.huatai.rag.domain.retrieval.RetrievalResult;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import com.huatai.rag.domain.retrieval.RerankPort;
 import com.huatai.rag.domain.retrieval.SearchMethod;
+import com.huatai.rag.infrastructure.config.RagProperties;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public interface RagQueryApplicationService {
 
@@ -40,12 +48,14 @@ public interface RagQueryApplicationService {
             String answer,
             List<RetrievedDocument> sourceDocuments,
             List<RetrievedDocument> recallDocuments,
-            List<RetrievedDocument> rerankDocuments) {
+            List<RetrievedDocument> rerankDocuments,
+            List<Citation> citations) {
 
         public QueryResult {
             sourceDocuments = List.copyOf(sourceDocuments);
             recallDocuments = List.copyOf(recallDocuments);
             rerankDocuments = List.copyOf(rerankDocuments);
+            citations = List.copyOf(citations);
         }
     }
 
@@ -55,31 +65,50 @@ public interface RagQueryApplicationService {
         private final AnswerGenerationPort answerGenerationPort;
         private final QuestionHistoryPort questionHistoryPort;
         private final ContextAssemblyService contextAssemblyService;
+        private final QueryRewriteRouter queryRewriteRouter;
+        private final CitationAssemblyService citationAssemblyService;
+        private final RagProperties ragProperties;
 
         public Default(
                 RetrievalPort retrievalPort,
                 RerankPort rerankPort,
                 AnswerGenerationPort answerGenerationPort,
                 QuestionHistoryPort questionHistoryPort,
-                ContextAssemblyService contextAssemblyService) {
+                ContextAssemblyService contextAssemblyService,
+                QueryRewriteRouter queryRewriteRouter,
+                CitationAssemblyService citationAssemblyService,
+                RagProperties ragProperties) {
             this.retrievalPort = Objects.requireNonNull(retrievalPort, "retrievalPort");
             this.rerankPort = Objects.requireNonNull(rerankPort, "rerankPort");
             this.answerGenerationPort = Objects.requireNonNull(answerGenerationPort, "answerGenerationPort");
             this.questionHistoryPort = Objects.requireNonNull(questionHistoryPort, "questionHistoryPort");
             this.contextAssemblyService = Objects.requireNonNull(contextAssemblyService, "contextAssemblyService");
+            this.queryRewriteRouter = Objects.requireNonNull(queryRewriteRouter, "queryRewriteRouter");
+            this.citationAssemblyService = Objects.requireNonNull(citationAssemblyService, "citationAssemblyService");
+            this.ragProperties = Objects.requireNonNull(ragProperties, "ragProperties");
         }
 
         @Override
         public QueryResult handle(QueryCommand command) {
+            // 1. Query rewriting
+            RewriteResult rewriteResult = queryRewriteRouter.rewrite(command.query(), command.module());
+
+            // 2. Build retrieval request (with metadata filters for Collateral)
+            Map<String, String> metadataFilters = null;
+            if (rewriteResult.structured() != null) {
+                metadataFilters = buildMetadataFilters(rewriteResult.structured());
+            }
             var retrievalRequest = new RetrievalRequest(
-                    command.indexNames(), command.query(),
+                    command.indexNames(), rewriteResult.rewrittenQuery(),
                     SearchMethod.fromValue(command.searchMethod()),
                     command.vecDocsNum(), command.txtDocsNum(),
-                    command.vecScoreThreshold(), command.textScoreThreshold());
+                    command.vecScoreThreshold(), command.textScoreThreshold(),
+                    metadataFilters);
             RetrievalResult retrievalResult = retrievalPort.retrieve(retrievalRequest);
 
+            // 3. Rerank
             List<RetrievedDocument> rerankedDocuments = rerankPort.rerank(
-                    command.query(),
+                    rewriteResult.rewrittenQuery(),
                     retrievalResult.rerankDocuments(),
                     command.rerankScoreThreshold());
 
@@ -87,30 +116,48 @@ public interface RagQueryApplicationService {
                 for (String indexName : command.indexNames()) {
                     questionHistoryPort.recordQuestion(indexName, command.query());
                 }
-                return new QueryResult(
-                        NO_DOCS_FALLBACK,
-                        List.of(),
-                        retrievalResult.recallDocuments(),
-                        List.of());
+                return new QueryResult(NO_DOCS_FALLBACK, List.of(),
+                        retrievalResult.recallDocuments(), List.of(), List.of());
             }
 
+            // 4. Source document selection
             List<RetrievedDocument> sourceDocuments = contextAssemblyService.selectSourceDocuments(
-                    retrievalResult,
-                    rerankedDocuments);
-            String context = sourceDocuments.stream()
-                    .map(RetrievedDocument::pageContent)
-                    .collect(java.util.stream.Collectors.joining("\n"));
-            String answer = answerGenerationPort.generateAnswer(command.query(), context);
+                    retrievalResult, rerankedDocuments);
 
+            // 5. Citation assembly + answer generation
+            String answer;
+            List<Citation> citations = List.of();
+            if (ragProperties.isCitationEnabled()) {
+                PromptWithCitations pwc = citationAssemblyService.assemble(sourceDocuments);
+                String rawAnswer = answerGenerationPort.generateAnswer(command.query(), pwc.formattedContext());
+                CitedAnswer citedAnswer = citationAssemblyService.parseResponse(rawAnswer, pwc.citationMap());
+                answer = citedAnswer.answer();
+                citations = citedAnswer.citations();
+            } else {
+                String simpleContext = sourceDocuments.stream()
+                        .map(RetrievedDocument::pageContent)
+                        .collect(Collectors.joining("\n"));
+                answer = answerGenerationPort.generateAnswer(command.query(), simpleContext);
+            }
+
+            // 6. Record question history
             for (String indexName : command.indexNames()) {
                 questionHistoryPort.recordQuestion(indexName, command.query());
             }
 
-            return new QueryResult(
-                    answer,
-                    sourceDocuments,
-                    retrievalResult.recallDocuments(),
-                    rerankedDocuments);
+            return new QueryResult(answer, sourceDocuments,
+                    retrievalResult.recallDocuments(), rerankedDocuments, citations);
+        }
+
+        private Map<String, String> buildMetadataFilters(StructuredQuery structured) {
+            Map<String, String> filters = new LinkedHashMap<>();
+            if (structured.counterparty() != null) {
+                filters.put("counterparty", structured.counterparty());
+            }
+            if (structured.agreementType() != null) {
+                filters.put("agreement_type", structured.agreementType());
+            }
+            return filters.isEmpty() ? null : filters;
         }
     }
 }
