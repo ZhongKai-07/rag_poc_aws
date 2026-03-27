@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huatai.rag.domain.retrieval.EmbeddingPort;
 import com.huatai.rag.domain.retrieval.RetrievalPort;
+import com.huatai.rag.domain.retrieval.RetrievalRequest;
 import com.huatai.rag.domain.retrieval.RetrievalResult;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import com.huatai.rag.domain.retrieval.SearchMethod;
@@ -37,21 +38,22 @@ public class OpenSearchRetrievalAdapter implements RetrievalPort {
     }
 
     @Override
-    public RetrievalResult retrieve(
-            List<String> indexNames,
-            String query,
-            SearchMethod searchMethod,
-            int vectorLimit,
-            int textLimit,
-            double vectorScoreThreshold,
-            double textScoreThreshold) {
-        List<RetrievedDocument> results = switch (searchMethod) {
-            case VECTOR -> searchGateway.vectorSearch(indexNames, query, vectorLimit, vectorScoreThreshold);
-            case TEXT -> searchGateway.textSearch(indexNames, query, textLimit, textScoreThreshold);
+    public RetrievalResult retrieve(RetrievalRequest request) {
+        List<RetrievedDocument> results = switch (request.searchMethod()) {
+            case VECTOR -> searchGateway.vectorSearch(
+                    request.indexNames(), request.query(),
+                    request.vectorLimit(), request.vectorScoreThreshold());
+            case TEXT -> searchGateway.textSearch(
+                    request.indexNames(), request.query(),
+                    request.textLimit(), request.textScoreThreshold());
             case MIX -> mergeUnique(
-                    searchGateway.vectorSearch(indexNames, query, vectorLimit, vectorScoreThreshold),
-                    searchGateway.textSearch(indexNames, query, textLimit, textScoreThreshold),
-                    vectorLimit + textLimit);
+                    searchGateway.vectorSearch(
+                            request.indexNames(), request.query(),
+                            request.vectorLimit(), request.vectorScoreThreshold()),
+                    searchGateway.textSearch(
+                            request.indexNames(), request.query(),
+                            request.textLimit(), request.textScoreThreshold()),
+                    request.vectorLimit() + request.textLimit());
         };
 
         return new RetrievalResult(results, results);

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.huatai.rag.domain.parser.ParsedAsset;
 import com.huatai.rag.domain.parser.ParsedChunk;
+import com.huatai.rag.domain.retrieval.RetrievalRequest;
 import com.huatai.rag.domain.retrieval.RetrievalResult;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import com.huatai.rag.domain.retrieval.SearchMethod;
@@ -73,14 +74,14 @@ class OpenSearchIntegrationTest {
                 List.of(shared, vectorOnly),
                 List.of(shared, textOnly)));
 
-        RetrievalResult result = adapter.retrieve(
+        RetrievalResult result = adapter.retrieve(new RetrievalRequest(
                 List.of("2f295fa6", "32a592c0"),
                 "onboarding agreement",
                 SearchMethod.MIX,
                 2,
                 2,
                 0.0,
-                0.0);
+                0.0));
 
         assertThat(result.recallDocuments())
                 .extracting(RetrievedDocument::pageContent)

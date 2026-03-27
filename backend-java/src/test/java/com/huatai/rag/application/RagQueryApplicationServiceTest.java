@@ -7,6 +7,7 @@ import com.huatai.rag.application.history.QuestionHistoryApplicationService;
 import com.huatai.rag.application.rag.RagQueryApplicationService;
 import com.huatai.rag.domain.history.QuestionHistoryPort;
 import com.huatai.rag.domain.retrieval.RetrievalPort;
+import com.huatai.rag.domain.retrieval.RetrievalRequest;
 import com.huatai.rag.domain.retrieval.RetrievalResult;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import com.huatai.rag.domain.retrieval.RerankPort;
@@ -110,9 +111,9 @@ class RagQueryApplicationServiceTest {
 
         private FakeRagQueryDependencies(RetrievalResult retrievalResult) {
             this.retrievalResult = retrievalResult;
-            this.retrievalPort = (indexNames, query, searchMethod, vectorLimit, textLimit, vectorScoreThreshold, textScoreThreshold) -> {
-                this.requestedIndexNames = indexNames;
-                this.requestedSearchMethod = searchMethod;
+            this.retrievalPort = (request) -> {
+                this.requestedIndexNames = request.indexNames();
+                this.requestedSearchMethod = request.searchMethod();
                 return this.retrievalResult;
             };
             this.rerankPort = (query, documents, rerankScoreThreshold) -> {

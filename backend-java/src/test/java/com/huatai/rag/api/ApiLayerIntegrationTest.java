@@ -33,10 +33,10 @@ import com.huatai.rag.domain.parser.ParserRequest;
 import com.huatai.rag.domain.rag.AnswerGenerationPort;
 import com.huatai.rag.domain.retrieval.EmbeddingPort;
 import com.huatai.rag.domain.retrieval.RetrievalPort;
+import com.huatai.rag.domain.retrieval.RetrievalRequest;
 import com.huatai.rag.domain.retrieval.RetrievalResult;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import com.huatai.rag.domain.retrieval.RerankPort;
-import com.huatai.rag.domain.retrieval.SearchMethod;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -343,14 +343,7 @@ class ApiLayerIntegrationTest {
 
     static final class FakeRetrievalPort implements RetrievalPort {
         @Override
-        public RetrievalResult retrieve(
-                List<String> indexNames,
-                String query,
-                SearchMethod searchMethod,
-                int vectorLimit,
-                int textLimit,
-                double vectorScoreThreshold,
-                double textScoreThreshold) {
+        public RetrievalResult retrieve(RetrievalRequest request) {
             RetrievedDocument recallOne = new RetrievedDocument(
                     "The onboarding flow requires completing the agreement review before account activation.",
                     91.2,

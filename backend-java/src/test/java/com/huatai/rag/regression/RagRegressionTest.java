@@ -7,6 +7,7 @@ import com.huatai.rag.application.rag.RagQueryApplicationService;
 import com.huatai.rag.domain.history.QuestionHistoryPort;
 import com.huatai.rag.domain.rag.AnswerGenerationPort;
 import com.huatai.rag.domain.retrieval.RetrievalPort;
+import com.huatai.rag.domain.retrieval.RetrievalRequest;
 import com.huatai.rag.domain.retrieval.RetrievalResult;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import com.huatai.rag.domain.retrieval.RerankPort;
@@ -70,7 +71,7 @@ class RagRegressionTest {
     @Test
     void emptyRerankResultsReturnPythonCompatibleNoDocsFallback() {
         TrackingAnswerGenerationPort answerGenerationPort = new TrackingAnswerGenerationPort();
-        RetrievalPort retrievalPort = (indexNames, query, searchMethod, vectorLimit, textLimit, vectorScoreThreshold, textScoreThreshold) ->
+        RetrievalPort retrievalPort = (request) ->
                 new RetrievalResult(
                         List.of(new RetrievedDocument(
                                 "The ISDA agreement requires collateral review before approval.",
@@ -165,25 +166,18 @@ class RagRegressionTest {
         }
 
         @Override
-        public RetrievalResult retrieve(
-                List<String> indexNames,
-                String query,
-                SearchMethod searchMethod,
-                int vectorLimit,
-                int textLimit,
-                double vectorScoreThreshold,
-                double textScoreThreshold) {
-            RegressionCase regressionCase = casesByQuestion.get(query);
+        public RetrievalResult retrieve(RetrievalRequest request) {
+            RegressionCase regressionCase = casesByQuestion.get(request.query());
             List<RetrievedDocument> documents = new ArrayList<>();
             for (String keyword : regressionCase.expectedKeywords()) {
                 documents.add(new RetrievedDocument(
-                        buildContent(keyword, searchMethod, regressionCase.filename()),
+                        buildContent(keyword, request.searchMethod(), regressionCase.filename()),
                         0.9 - (documents.size() * 0.05),
                         null,
                         Map.of(
                                 "source", regressionCase.filename(),
-                                "index_name", indexNames.get(Math.min(documents.size(), indexNames.size() - 1)),
-                                "search_method", searchMethod.name().toLowerCase())));
+                                "index_name", request.indexNames().get(Math.min(documents.size(), request.indexNames().size() - 1)),
+                                "search_method", request.searchMethod().name().toLowerCase())));
             }
             return new RetrievalResult(documents, documents);
         }

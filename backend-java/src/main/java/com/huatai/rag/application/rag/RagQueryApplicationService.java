@@ -4,6 +4,7 @@ import com.huatai.rag.application.common.ContextAssemblyService;
 import com.huatai.rag.domain.history.QuestionHistoryPort;
 import com.huatai.rag.domain.rag.AnswerGenerationPort;
 import com.huatai.rag.domain.retrieval.RetrievalPort;
+import com.huatai.rag.domain.retrieval.RetrievalRequest;
 import com.huatai.rag.domain.retrieval.RetrievalResult;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
 import com.huatai.rag.domain.retrieval.RerankPort;
@@ -70,14 +71,12 @@ public interface RagQueryApplicationService {
 
         @Override
         public QueryResult handle(QueryCommand command) {
-            RetrievalResult retrievalResult = retrievalPort.retrieve(
-                    command.indexNames(),
-                    command.query(),
+            var retrievalRequest = new RetrievalRequest(
+                    command.indexNames(), command.query(),
                     SearchMethod.fromValue(command.searchMethod()),
-                    command.vecDocsNum(),
-                    command.txtDocsNum(),
-                    command.vecScoreThreshold(),
-                    command.textScoreThreshold());
+                    command.vecDocsNum(), command.txtDocsNum(),
+                    command.vecScoreThreshold(), command.textScoreThreshold());
+            RetrievalResult retrievalResult = retrievalPort.retrieve(retrievalRequest);
 
             List<RetrievedDocument> rerankedDocuments = rerankPort.rerank(
                     command.query(),
