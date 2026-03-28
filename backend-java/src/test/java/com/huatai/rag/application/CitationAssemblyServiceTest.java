@@ -20,7 +20,7 @@ class CitationAssemblyServiceTest {
                         Map.of("filename", "开户指引.pdf", "page_number", 5,
                                 "section_path", List.of("第二章"))));
 
-        var service = new CitationAssemblyService();
+        var service = new CitationAssemblyService(null);
         var result = service.assemble(docs);
 
         assertThat(result.formattedContext()).contains("[1] (AML手册.pdf, 第12页)");
@@ -34,14 +34,14 @@ class CitationAssemblyServiceTest {
     void assemble_falls_back_to_unknown_when_filename_missing() {
         var docs = List.of(
                 new RetrievedDocument("text", 0.9, null, Map.of("page_number", 1)));
-        var service = new CitationAssemblyService();
+        var service = new CitationAssemblyService(null);
         var result = service.assemble(docs);
         assertThat(result.citationMap().get(1).filename()).isEqualTo("未知源文档");
     }
 
     @Test
     void parseResponse_extracts_cited_references() {
-        var service = new CitationAssemblyService();
+        var service = new CitationAssemblyService(null);
         var citations = Map.of(
                 1, new Citation(1, "a.pdf", 1, null, "text1"),
                 2, new Citation(2, "b.pdf", 2, null, "text2"),
@@ -55,7 +55,7 @@ class CitationAssemblyServiceTest {
 
     @Test
     void parseResponse_handles_variant_formats() {
-        var service = new CitationAssemblyService();
+        var service = new CitationAssemblyService(null);
         var citations = Map.of(
                 1, new Citation(1, "a.pdf", 1, null, "t"),
                 2, new Citation(2, "b.pdf", 2, null, "t"));
@@ -67,7 +67,7 @@ class CitationAssemblyServiceTest {
 
     @Test
     void parseResponse_returns_empty_citations_when_none_found() {
-        var service = new CitationAssemblyService();
+        var service = new CitationAssemblyService(null);
         var cited = service.parseResponse("没有引用的答案", Map.of());
         assertThat(cited.citations()).isEmpty();
     }

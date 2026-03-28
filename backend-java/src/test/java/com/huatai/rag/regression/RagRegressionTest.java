@@ -49,7 +49,7 @@ class RagRegressionTest {
                 questionHistoryPort,
                 new ContextAssemblyService(),
                 router,
-                new CitationAssemblyService(),
+                new CitationAssemblyService(null),
                 ragProps);
 
         for (RegressionCase regressionCase : cases) {
@@ -111,7 +111,7 @@ class RagRegressionTest {
                 new FakeQuestionHistoryPort(),
                 new ContextAssemblyService(),
                 router2,
-                new CitationAssemblyService(),
+                new CitationAssemblyService(null),
                 ragProps2);
 
         RagQueryApplicationService.QueryResult result = service.handle(new RagQueryApplicationService.QueryCommand(

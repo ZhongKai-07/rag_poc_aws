@@ -320,8 +320,9 @@ class ApiLayerIntegrationTest {
         }
 
         @Bean
-        com.huatai.rag.application.rag.CitationAssemblyService citationAssemblyService() {
-            return new com.huatai.rag.application.rag.CitationAssemblyService();
+        com.huatai.rag.application.rag.CitationAssemblyService citationAssemblyService(
+                com.huatai.rag.domain.document.DocumentRegistryPort documentRegistryPort) {
+            return new com.huatai.rag.application.rag.CitationAssemblyService(documentRegistryPort);
         }
 
         @Bean

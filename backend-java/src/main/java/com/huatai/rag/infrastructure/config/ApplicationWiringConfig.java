@@ -213,8 +213,8 @@ public class ApplicationWiringConfig {
     }
 
     @Bean
-    public CitationAssemblyService citationAssemblyService() {
-        return new CitationAssemblyService();
+    public CitationAssemblyService citationAssemblyService(DocumentRegistryPort documentRegistryPort) {
+        return new CitationAssemblyService(documentRegistryPort);
     }
 
     @Bean

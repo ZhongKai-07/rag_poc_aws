@@ -1,5 +1,8 @@
 package com.huatai.rag.application.rag;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huatai.rag.domain.document.DocumentRegistryPort;
 import com.huatai.rag.domain.rag.Citation;
 import com.huatai.rag.domain.rag.CitedAnswer;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
@@ -19,17 +22,35 @@ public class CitationAssemblyService {
     private static final Logger log = LoggerFactory.getLogger(CitationAssemblyService.class);
 
     private static final Pattern CITATION_PATTERN = Pattern.compile("\\[(\\d+)]");
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final String CITATION_INSTRUCTION = """
 
-            请在回答中使用引用标记 [n] 标注信息来源。例如：
-            用户问题：KYC审查流程是什么？
-            回答：根据[1]，KYC审查流程包括客户身份核实和风险评级[2]。
+            请根据以上文档回答用户问题。回答时必须使用[编号]标注信息来源。
+            如果文档中没有相关信息，请说明无法找到答案，不要编造内容。
+
+            回答完成后，请根据文档内容和用户问题，生成2-3个用户可能感兴趣的追问建议。
+
+            输出格式（严格JSON）：
+            {"answer": "...", "suggested_questions": ["追问1", "追问2", "追问3"]}
+
+            示例：
+            {"answer": "根据[1]，KYC审查流程要求...", "suggested_questions": ["World-Check匹配后的升级流程是什么？", "KYC审查的时效要求是多久？"]}
 
             以下是参考文档：
             """;
 
+    private final DocumentRegistryPort documentRegistryPort;
+
+    public CitationAssemblyService(DocumentRegistryPort documentRegistryPort) {
+        this.documentRegistryPort = documentRegistryPort;
+    }
+
     public PromptWithCitations assemble(List<RetrievedDocument> documents) {
+        return assemble(documents, null);
+    }
+
+    public PromptWithCitations assemble(List<RetrievedDocument> documents, String indexName) {
         Map<Integer, Citation> citationMap = new LinkedHashMap<>();
         StringBuilder sb = new StringBuilder();
         sb.append(CITATION_INSTRUCTION);
@@ -39,10 +60,10 @@ public class CitationAssemblyService {
             RetrievedDocument doc = documents.get(i);
             Map<String, Object> metadata = doc.metadata();
 
-            String filename = extractString(metadata, "filename", "未知源文档");
+            String filename = resolveFilename(metadata, indexName);
             Integer pageNumber = extractInteger(metadata, "page_number");
             String sectionPath = extractSectionPath(metadata);
-            String excerpt = doc.pageContent();
+            String excerpt = cleanExcerpt(doc.pageContent());
 
             citationMap.put(index, new Citation(index, filename, pageNumber, sectionPath, excerpt));
 
@@ -52,12 +73,39 @@ public class CitationAssemblyService {
                 sb.append(", 第").append(pageNumber).append("页");
             }
             sb.append(")\n");
-            sb.append(excerpt).append("\n");
+            sb.append(doc.pageContent()).append("\n");
         }
 
         log.info("[Citation] assembled {} references from {} source docs", citationMap.size(), documents.size());
         citationMap.forEach((idx, c) -> log.debug("[Citation] [{}] file='{}' page={}", idx, c.filename(), c.pageNumber()));
         return new PromptWithCitations(sb.toString(), citationMap);
+    }
+
+    public ParsedLlmOutput parseLlmOutput(String rawOutput) {
+        if (rawOutput == null || rawOutput.isBlank()) {
+            return new ParsedLlmOutput("", List.of());
+        }
+
+        String cleaned = rawOutput.strip();
+        // Strip markdown code block wrapping
+        if (cleaned.startsWith("```")) {
+            cleaned = cleaned.replaceFirst("^```(?:json)?\\s*", "").replaceFirst("\\s*```$", "");
+        }
+
+        try {
+            JsonNode root = OBJECT_MAPPER.readTree(cleaned);
+            String answerText = root.has("answer") ? root.get("answer").asText() : rawOutput;
+            List<String> questions = new ArrayList<>();
+            if (root.has("suggested_questions") && root.get("suggested_questions").isArray()) {
+                for (JsonNode q : root.get("suggested_questions")) {
+                    questions.add(q.asText());
+                }
+            }
+            return new ParsedLlmOutput(answerText, questions);
+        } catch (Exception e) {
+            log.warn("[Citation] failed to parse LLM JSON output, treating as plain text: {}", e.getMessage());
+            return new ParsedLlmOutput(rawOutput, List.of());
+        }
     }
 
     public CitedAnswer parseResponse(String rawAnswer, Map<Integer, Citation> citationMap) {
@@ -75,6 +123,30 @@ public class CitationAssemblyService {
 
         log.info("[Citation] parsed answer: found {} citation references {}", usedCitations.size(), seen);
         return new CitedAnswer(rawAnswer, usedCitations, List.of());
+    }
+
+    public String cleanExcerpt(String text) {
+        if (text == null) return "";
+        text = text.replaceAll("[<>*#=]{3,}", "");
+        text = text.replaceAll("[\\p{IsCyrillic}]+", "");
+        text = text.replaceAll("\\s{2,}", " ").trim();
+        if (text.length() > 150) {
+            text = text.substring(0, 150) + "...";
+        }
+        return text;
+    }
+
+    private String resolveFilename(Map<String, Object> metadata, String indexName) {
+        String filename = extractString(metadata, "filename", null);
+        if (filename != null) return filename;
+
+        if (indexName != null && documentRegistryPort != null) {
+            var record = documentRegistryPort.findByIndexName(indexName);
+            if (record.isPresent()) {
+                return record.get().filename();
+            }
+        }
+        return indexName != null ? indexName : "未知源文档";
     }
 
     private static String extractString(Map<String, Object> metadata, String key, String defaultValue) {

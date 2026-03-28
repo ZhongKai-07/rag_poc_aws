@@ -58,7 +58,7 @@ class RagQueryApplicationServiceTest {
                 questionHistoryPort,
                 new ContextAssemblyService(),
                 router,
-                new CitationAssemblyService(),
+                new CitationAssemblyService(null),
                 ragProps);
 
         RagQueryApplicationService.QueryResult result = service.handle(new RagQueryApplicationService.QueryCommand(
@@ -107,7 +107,7 @@ class RagQueryApplicationServiceTest {
         RagQueryApplicationService.Default service = new RagQueryApplicationService.Default(
                 dependencies.retrievalPort, dependencies.rerankPort, dependencies.answerGenerationPort,
                 new FakeQuestionHistoryPort(), new ContextAssemblyService(),
-                router, new CitationAssemblyService(), ragProps);
+                router, new CitationAssemblyService(null), ragProps);
 
         // Client sends rerankScoreThreshold=0.0, but server floor is 0.5
         service.handle(new RagQueryApplicationService.QueryCommand(
