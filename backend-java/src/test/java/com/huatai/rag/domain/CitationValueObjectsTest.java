@@ -28,7 +28,7 @@ class CitationValueObjectsTest {
     @Test
     void citedAnswer_holds_answer_and_citations() {
         var citations = List.of(new Citation(1, "f.pdf", 1, null, "text"));
-        var ca = new CitedAnswer("根据[1]...", citations);
+        var ca = new CitedAnswer("根据[1]...", citations, List.of());
         assertThat(ca.answer()).isEqualTo("根据[1]...");
         assertThat(ca.citations()).hasSize(1);
     }

@@ -1,0 +1,7 @@
+CREATE TABLE chat_session (
+    id UUID PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    module VARCHAR(64) NOT NULL DEFAULT 'RAG',
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);

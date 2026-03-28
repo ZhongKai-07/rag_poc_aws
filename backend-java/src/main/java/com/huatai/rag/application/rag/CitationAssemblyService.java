@@ -74,7 +74,7 @@ public class CitationAssemblyService {
         }
 
         log.info("[Citation] parsed answer: found {} citation references {}", usedCitations.size(), seen);
-        return new CitedAnswer(rawAnswer, usedCitations);
+        return new CitedAnswer(rawAnswer, usedCitations, List.of());
     }
 
     private static String extractString(Map<String, Object> metadata, String key, String defaultValue) {
