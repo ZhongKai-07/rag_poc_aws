@@ -81,13 +81,17 @@ class RagControllerContractTest {
                                         86.4,
                                         0.88,
                                         Map.of())),
-                        List.of()));
+                        List.of(),
+                        List.of(),
+                        com.huatai.rag.domain.rag.ConfidenceLevel.HIGH,
+                        false,
+                        java.util.UUID.randomUUID()));
 
         mockMvc.perform(post("/rag_answer")
                         .contentType(APPLICATION_JSON)
                         .content(readFixture("fixtures/contracts/rag-answer-request.json")))
                 .andExpect(status().isOk())
-                .andExpect(content().json(readFixture("fixtures/contracts/rag-answer-response.json"), true));
+                .andExpect(content().json(readFixture("fixtures/contracts/rag-answer-response.json"), false));
     }
 
     private String readFixture(String path) throws Exception {

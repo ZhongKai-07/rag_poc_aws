@@ -50,7 +50,8 @@ class RagRegressionTest {
                 new ContextAssemblyService(),
                 router,
                 new CitationAssemblyService(null),
-                ragProps);
+                ragProps,
+                null, null, null);
 
         for (RegressionCase regressionCase : cases) {
             List<String> indexNames = regressionCase.indexNames();
@@ -112,7 +113,8 @@ class RagRegressionTest {
                 new ContextAssemblyService(),
                 router2,
                 new CitationAssemblyService(null),
-                ragProps2);
+                ragProps2,
+                null, null, null);
 
         RagQueryApplicationService.QueryResult result = service.handle(new RagQueryApplicationService.QueryCommand(
                 "regression-session",

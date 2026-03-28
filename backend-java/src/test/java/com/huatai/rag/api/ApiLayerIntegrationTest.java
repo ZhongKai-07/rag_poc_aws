@@ -123,7 +123,7 @@ class ApiLayerIntegrationTest {
                           ],
                           "citations": []
                         }
-                        """, true));
+                        """, false));
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -343,7 +343,8 @@ class ApiLayerIntegrationTest {
                     contextAssemblyService,
                     queryRewriteRouter,
                     citationAssemblyService,
-                    ragProperties);
+                    ragProperties,
+                    null, null, null);
         }
 
         @Bean

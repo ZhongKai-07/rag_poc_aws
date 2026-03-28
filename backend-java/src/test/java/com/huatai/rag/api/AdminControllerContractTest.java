@@ -29,6 +29,9 @@ class AdminControllerContractTest {
     @MockBean
     private ParseResultQueryApplicationService parseResultQueryService;
 
+    @MockBean
+    private com.huatai.rag.application.chat.FeedbackApplicationService feedbackApplicationService;
+
     @Autowired
     private ObjectMapper objectMapper;
 

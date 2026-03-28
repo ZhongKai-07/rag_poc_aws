@@ -56,12 +56,7 @@ public class RagController {
                 request.getRerankScoreThreshold(),
                 request.getSearchMethod()));
 
-        RagResponse response = new RagResponse();
-        response.setAnswer(result.answer());
-        response.setSourceDocuments(result.sourceDocuments().stream().map(this::toSourceDocument).toList());
-        response.setRecallDocuments(result.recallDocuments().stream().map(this::toRecallDocument).toList());
-        response.setRerankDocuments(result.rerankDocuments().stream().map(this::toSourceDocument).toList());
-        response.setCitations(result.citations().stream().map(this::toCitationDto).toList());
+        RagResponse response = buildResponse(result);
         log.info("[API] response: answer_len={}, sources={}, citations={}",
                 result.answer().length(), result.sourceDocuments().size(), result.citations().size());
         return response;
@@ -74,7 +69,6 @@ public class RagController {
         SseEmitter emitter = new SseEmitter(60_000L);
         streamingExecutor.execute(() -> {
             try {
-                // Use shared pipeline for retrieval + rerank
                 RagQueryApplicationService.QueryResult result = ragQueryApplicationService.handle(
                         new RagQueryApplicationService.QueryCommand(
                                 request.getSessionId(),
@@ -88,22 +82,13 @@ public class RagController {
                                 request.getRerankScoreThreshold(),
                                 request.getSearchMethod()));
 
-                // Stream tokens from the answer
                 String[] tokens = result.answer().split("(?<=\\G.{1,10})");
                 for (String token : tokens) {
                     emitter.send(SseEmitter.event().name("token")
                             .data(Map.of("content", token)));
                 }
 
-                // Send done event with full response
-                RagResponse response = new RagResponse();
-                response.setAnswer(result.answer());
-                response.setSourceDocuments(result.sourceDocuments().stream().map(this::toSourceDocument).toList());
-                response.setRecallDocuments(result.recallDocuments().stream().map(this::toRecallDocument).toList());
-                response.setRerankDocuments(result.rerankDocuments().stream().map(this::toSourceDocument).toList());
-                response.setCitations(result.citations().stream().map(this::toCitationDto).toList());
-
-                emitter.send(SseEmitter.event().name("done").data(response));
+                emitter.send(SseEmitter.event().name("done").data(buildResponse(result)));
                 emitter.complete();
             } catch (Exception e) {
                 log.error("[API] SSE stream error", e);
@@ -115,6 +100,20 @@ public class RagController {
             }
         });
         return emitter;
+    }
+
+    private RagResponse buildResponse(RagQueryApplicationService.QueryResult result) {
+        RagResponse response = new RagResponse();
+        response.setAnswer(result.answer());
+        response.setSourceDocuments(result.sourceDocuments().stream().map(this::toSourceDocument).toList());
+        response.setRecallDocuments(result.recallDocuments().stream().map(this::toRecallDocument).toList());
+        response.setRerankDocuments(result.rerankDocuments().stream().map(this::toSourceDocument).toList());
+        response.setCitations(result.citations().stream().map(this::toCitationDto).toList());
+        response.setSuggestedQuestions(result.suggestedQuestions());
+        response.setConfidence(result.confidence() != null ? result.confidence().name() : null);
+        response.setHistoryCompressed(result.historyCompressed());
+        response.setSessionId(result.sessionId() != null ? result.sessionId().toString() : null);
+        return response;
     }
 
     private SourceDocumentDto toSourceDocument(RetrievedDocument document) {

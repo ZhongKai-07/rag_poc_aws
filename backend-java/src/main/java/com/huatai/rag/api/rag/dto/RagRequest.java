@@ -8,7 +8,6 @@ import java.util.List;
 public class RagRequest {
 
     @JsonProperty("session_id")
-    @NotBlank
     private String sessionId;
 
     @JsonProperty("index_names")

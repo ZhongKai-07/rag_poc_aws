@@ -226,7 +226,10 @@ public class ApplicationWiringConfig {
             ContextAssemblyService contextAssemblyService,
             QueryRewriteRouter queryRewriteRouter,
             CitationAssemblyService citationAssemblyService,
-            RagProperties ragProperties) {
+            RagProperties ragProperties,
+            ConversationMemoryService conversationMemoryService,
+            ChatSessionPort chatSessionPort,
+            ChatMessagePort chatMessagePort) {
         return new RagQueryApplicationService.Default(
                 retrievalPort,
                 rerankPort,
@@ -235,7 +238,10 @@ public class ApplicationWiringConfig {
                 contextAssemblyService,
                 queryRewriteRouter,
                 citationAssemblyService,
-                ragProperties);
+                ragProperties,
+                conversationMemoryService,
+                chatSessionPort,
+                chatMessagePort);
     }
 
     @Bean

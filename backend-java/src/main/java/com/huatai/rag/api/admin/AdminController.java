@@ -2,6 +2,9 @@ package com.huatai.rag.api.admin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.huatai.rag.application.admin.ParseResultQueryApplicationService;
+import com.huatai.rag.application.chat.FeedbackApplicationService;
+import com.huatai.rag.domain.chat.ChatFeedback;
+import com.huatai.rag.domain.chat.FeedbackStats;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -9,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -16,9 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
 
     private final ParseResultQueryApplicationService parseResultQueryService;
+    private final FeedbackApplicationService feedbackApplicationService;
 
-    public AdminController(ParseResultQueryApplicationService parseResultQueryService) {
+    public AdminController(ParseResultQueryApplicationService parseResultQueryService,
+                           FeedbackApplicationService feedbackApplicationService) {
         this.parseResultQueryService = parseResultQueryService;
+        this.feedbackApplicationService = feedbackApplicationService;
     }
 
     @GetMapping("/parse_results")
@@ -64,5 +71,26 @@ public class AdminController {
                         "sentence", c.sentence(),
                         "asset_references", c.assetReferences()))
                 .toList();
+    }
+
+    @GetMapping("/feedback")
+    public List<Map<String, Object>> listFeedback(
+            @RequestParam(required = false) String rating,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return feedbackApplicationService.listFeedback(rating, page, size).stream()
+                .map(f -> Map.<String, Object>of(
+                        "id", f.id().toString(),
+                        "message_id", f.messageId().toString(),
+                        "session_id", f.sessionId().toString(),
+                        "rating", f.rating(),
+                        "comment", f.comment() != null ? f.comment() : "",
+                        "created_at", f.createdAt().toString()))
+                .toList();
+    }
+
+    @GetMapping("/feedback/stats")
+    public FeedbackStats feedbackStats() {
+        return feedbackApplicationService.getStats();
     }
 }
