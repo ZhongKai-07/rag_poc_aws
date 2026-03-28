@@ -2,6 +2,9 @@ package com.huatai.rag.infrastructure.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huatai.rag.application.admin.ParseResultQueryApplicationService;
+import com.huatai.rag.application.chat.ChatSessionApplicationService;
+import com.huatai.rag.application.chat.ConversationMemoryService;
+import com.huatai.rag.application.chat.FeedbackApplicationService;
 import com.huatai.rag.application.common.ContextAssemblyService;
 import com.huatai.rag.application.history.QuestionHistoryApplicationService;
 import com.huatai.rag.application.ingestion.DocumentIngestionApplicationService;
@@ -9,6 +12,10 @@ import com.huatai.rag.application.registry.ProcessedFileQueryApplicationService;
 import com.huatai.rag.application.rag.CitationAssemblyService;
 import com.huatai.rag.application.rag.QueryRewriteRouter;
 import com.huatai.rag.application.rag.RagQueryApplicationService;
+import com.huatai.rag.domain.chat.ChatFeedbackPort;
+import com.huatai.rag.domain.chat.ChatMessagePort;
+import com.huatai.rag.domain.chat.ChatSessionPort;
+import com.huatai.rag.domain.chat.HistoryCompressorPort;
 import com.huatai.rag.domain.rag.QueryRewriteStrategy;
 import com.huatai.rag.domain.bda.BdaParseResultPort;
 import com.huatai.rag.domain.document.DocumentRegistryPort;
@@ -22,6 +29,7 @@ import com.huatai.rag.infrastructure.bda.BdaClient;
 import com.huatai.rag.infrastructure.bda.BdaDocumentParserAdapter;
 import com.huatai.rag.infrastructure.bda.BdaResultMapper;
 import com.huatai.rag.infrastructure.bedrock.BedrockAnswerGenerationAdapter;
+import com.huatai.rag.infrastructure.bedrock.BedrockConversationMemoryAdapter;
 import com.huatai.rag.infrastructure.bedrock.BedrockEmbeddingAdapter;
 import com.huatai.rag.infrastructure.bedrock.BedrockRerankAdapter;
 import com.huatai.rag.infrastructure.bedrock.CobKeywordRewriteStrategy;
@@ -33,9 +41,15 @@ import com.huatai.rag.infrastructure.opensearch.OpenSearchDocumentWriter;
 import com.huatai.rag.infrastructure.opensearch.OpenSearchIndexManager;
 import com.huatai.rag.infrastructure.opensearch.OpenSearchRetrievalAdapter;
 import com.huatai.rag.infrastructure.persistence.BdaParseResultPersistenceAdapter;
+import com.huatai.rag.infrastructure.persistence.ChatFeedbackPersistenceAdapter;
+import com.huatai.rag.infrastructure.persistence.ChatMessagePersistenceAdapter;
+import com.huatai.rag.infrastructure.persistence.ChatSessionPersistenceAdapter;
 import com.huatai.rag.infrastructure.persistence.DocumentRegistryPersistenceAdapter;
 import com.huatai.rag.infrastructure.persistence.QuestionHistoryPersistenceAdapter;
 import com.huatai.rag.infrastructure.persistence.repository.BdaParseResultJpaRepository;
+import com.huatai.rag.infrastructure.persistence.repository.ChatFeedbackJpaRepository;
+import com.huatai.rag.infrastructure.persistence.repository.ChatMessageJpaRepository;
+import com.huatai.rag.infrastructure.persistence.repository.ChatSessionJpaRepository;
 import com.huatai.rag.infrastructure.persistence.repository.DocumentFileJpaRepository;
 import com.huatai.rag.infrastructure.persistence.repository.IngestionJobJpaRepository;
 import com.huatai.rag.infrastructure.persistence.repository.QuestionHistoryJpaRepository;
@@ -269,5 +283,50 @@ public class ApplicationWiringConfig {
                 s3Client,
                 openSearchRestClient,
                 objectMapper);
+    }
+
+    // ── Batch B: Chat / Session / Feedback ──
+
+    @Bean
+    public ChatSessionPort chatSessionPort(ChatSessionJpaRepository repo) {
+        return new ChatSessionPersistenceAdapter(repo);
+    }
+
+    @Bean
+    public ChatMessagePort chatMessagePort(ChatMessageJpaRepository repo, ObjectMapper objectMapper) {
+        return new ChatMessagePersistenceAdapter(repo, objectMapper);
+    }
+
+    @Bean
+    public ChatFeedbackPort chatFeedbackPort(ChatFeedbackJpaRepository repo) {
+        return new ChatFeedbackPersistenceAdapter(repo);
+    }
+
+    @Bean
+    public HistoryCompressorPort historyCompressorPort(
+            BedrockRuntimeClient bedrockRuntimeClient,
+            RagProperties ragProperties,
+            RetryUtils retryUtils) {
+        return new BedrockConversationMemoryAdapter(bedrockRuntimeClient, ragProperties, retryUtils);
+    }
+
+    @Bean
+    public ConversationMemoryService conversationMemoryService(
+            ChatMessagePort chatMessagePort,
+            HistoryCompressorPort historyCompressorPort) {
+        return new ConversationMemoryService(chatMessagePort, historyCompressorPort);
+    }
+
+    @Bean
+    public ChatSessionApplicationService chatSessionApplicationService(
+            ChatSessionPort chatSessionPort,
+            ChatMessagePort chatMessagePort,
+            ChatFeedbackPort chatFeedbackPort) {
+        return new ChatSessionApplicationService(chatSessionPort, chatMessagePort, chatFeedbackPort);
+    }
+
+    @Bean
+    public FeedbackApplicationService feedbackApplicationService(ChatFeedbackPort chatFeedbackPort) {
+        return new FeedbackApplicationService(chatFeedbackPort);
     }
 }
