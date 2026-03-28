@@ -57,7 +57,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = {RagController.class, UploadController.class, QuestionController.class, HealthController.class})
-@Import({ApiExceptionHandler.class, ApiLayerIntegrationTest.TestConfig.class})
+@Import({ApiExceptionHandler.class, ApiLayerIntegrationTest.TestConfig.class, com.huatai.rag.infrastructure.config.StreamingConfig.class})
 class ApiLayerIntegrationTest {
 
     @Autowired
@@ -371,6 +371,53 @@ class ApiLayerIntegrationTest {
         QuestionHistoryApplicationService questionHistoryApplicationService(FakeQuestionHistoryPort questionHistoryPort) {
             return new QuestionHistoryApplicationService.Default(questionHistoryPort);
         }
+
+        @Bean
+        com.huatai.rag.domain.chat.ChatSessionPort chatSessionPort() {
+            return new com.huatai.rag.domain.chat.ChatSessionPort() {
+                public com.huatai.rag.domain.chat.ChatSession create(String title, String module) {
+                    return new com.huatai.rag.domain.chat.ChatSession(java.util.UUID.randomUUID(), title, module, java.time.Instant.now(), java.time.Instant.now());
+                }
+                public java.util.Optional<com.huatai.rag.domain.chat.ChatSession> findById(java.util.UUID id) { return java.util.Optional.empty(); }
+                public java.util.List<com.huatai.rag.domain.chat.ChatSession> listSessions(int page, int size) { return java.util.List.of(); }
+                public void updateTitle(java.util.UUID id, String title) {}
+                public void delete(java.util.UUID id) {}
+            };
+        }
+
+        @Bean
+        com.huatai.rag.domain.chat.ChatMessagePort chatMessagePort() {
+            return new com.huatai.rag.domain.chat.ChatMessagePort() {
+                public void save(com.huatai.rag.domain.chat.ChatMessage message) {}
+                public java.util.List<com.huatai.rag.domain.chat.ChatMessage> loadRecent(java.util.UUID sessionId, int limit) { return java.util.List.of(); }
+                public int countMessages(java.util.UUID sessionId) { return 0; }
+                public java.util.List<com.huatai.rag.domain.chat.ChatMessage> loadAll(java.util.UUID sessionId) { return java.util.List.of(); }
+            };
+        }
+
+        @Bean
+        com.huatai.rag.domain.chat.ChatFeedbackPort chatFeedbackPort() {
+            return new com.huatai.rag.domain.chat.ChatFeedbackPort() {
+                public void upsert(com.huatai.rag.domain.chat.ChatFeedback feedback) {}
+                public java.util.Optional<com.huatai.rag.domain.chat.ChatFeedback> findByMessageId(java.util.UUID messageId) { return java.util.Optional.empty(); }
+                public java.util.List<com.huatai.rag.domain.chat.ChatFeedback> list(String ratingFilter, int page, int size) { return java.util.List.of(); }
+                public com.huatai.rag.domain.chat.FeedbackStats stats() { return new com.huatai.rag.domain.chat.FeedbackStats(0, 0, 0, 0); }
+            };
+        }
+
+        @Bean
+        com.huatai.rag.application.chat.ChatSessionApplicationService chatSessionApplicationService(
+                com.huatai.rag.domain.chat.ChatSessionPort chatSessionPort,
+                com.huatai.rag.domain.chat.ChatMessagePort chatMessagePort,
+                com.huatai.rag.domain.chat.ChatFeedbackPort chatFeedbackPort) {
+            return new com.huatai.rag.application.chat.ChatSessionApplicationService(chatSessionPort, chatMessagePort, chatFeedbackPort);
+        }
+
+        @Bean
+        com.huatai.rag.application.chat.FeedbackApplicationService feedbackApplicationService(
+                com.huatai.rag.domain.chat.ChatFeedbackPort chatFeedbackPort) {
+            return new com.huatai.rag.application.chat.FeedbackApplicationService(chatFeedbackPort);
+        }
     }
 
     static final class FakeRetrievalPort implements RetrievalPort {
@@ -411,6 +458,12 @@ class ApiLayerIntegrationTest {
                 throw failure;
             }
             return "A baseline-compatible answer is returned as plain text.";
+        }
+
+        @Override
+        public void generateAnswerStream(String query, String formattedContext,
+                                          java.util.function.Consumer<String> tokenConsumer) {
+            tokenConsumer.accept(generateAnswer(query, formattedContext));
         }
     }
 

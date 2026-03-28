@@ -167,7 +167,17 @@ class RagQueryApplicationServiceTest {
                 this.capturedRerankThreshold = rerankScoreThreshold;
                 return rerankedDocuments;
             };
-            this.answerGenerationPort = (query, formattedContext) -> answer;
+            this.answerGenerationPort = new AnswerGenerationPort() {
+                @Override
+                public String generateAnswer(String query, String formattedContext) {
+                    return answer;
+                }
+                @Override
+                public void generateAnswerStream(String query, String formattedContext,
+                                                  java.util.function.Consumer<String> tokenConsumer) {
+                    tokenConsumer.accept(answer);
+                }
+            };
         }
     }
 

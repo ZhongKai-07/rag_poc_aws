@@ -231,6 +231,11 @@ class RagRegressionTest {
         public String generateAnswer(String query, String formattedContext) {
             return formattedContext;
         }
+        @Override
+        public void generateAnswerStream(String query, String formattedContext,
+                                          java.util.function.Consumer<String> tokenConsumer) {
+            tokenConsumer.accept(generateAnswer(query, formattedContext));
+        }
     }
 
     private static final class TrackingAnswerGenerationPort implements AnswerGenerationPort {
@@ -240,6 +245,11 @@ class RagRegressionTest {
         public String generateAnswer(String query, String formattedContext) {
             invocationCount++;
             return "should-not-be-used";
+        }
+        @Override
+        public void generateAnswerStream(String query, String formattedContext,
+                                          java.util.function.Consumer<String> tokenConsumer) {
+            tokenConsumer.accept(generateAnswer(query, formattedContext));
         }
     }
 

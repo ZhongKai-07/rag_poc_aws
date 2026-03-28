@@ -11,7 +11,9 @@ import com.huatai.rag.api.common.ApiExceptionHandler;
 import com.huatai.rag.api.rag.RagController;
 import com.huatai.rag.api.rag.dto.RagRequest;
 import com.huatai.rag.application.rag.RagQueryApplicationService;
+import com.huatai.rag.domain.rag.AnswerGenerationPort;
 import com.huatai.rag.domain.retrieval.RetrievedDocument;
+import com.huatai.rag.infrastructure.config.StreamingConfig;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -24,7 +26,7 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = RagController.class)
-@Import(ApiExceptionHandler.class)
+@Import({ApiExceptionHandler.class, StreamingConfig.class})
 class RagControllerContractTest {
 
     @Autowired
@@ -32,6 +34,9 @@ class RagControllerContractTest {
 
     @MockBean
     private RagQueryApplicationService ragQueryApplicationService;
+
+    @MockBean
+    private AnswerGenerationPort answerGenerationPort;
 
     @Test
     void postRagAnswerReturnsBaselineCompatiblePayload() throws Exception {
