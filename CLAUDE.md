@@ -6,13 +6,14 @@ Repository-wide guidance for Claude Code and other coding agents.
 
 RAG 知识库问答系统，正在从 Python 后端 (`api/`) 向 Spring Boot 后端 (`backend-java/`) 迁移。
 
-- **Java 后端**：运行在端口 `8001`，Enhanced RAG Batch A 已实现 (2026-03-27)，86 个测试通过。
+- **Java 后端**：运行在端口 `8001`，Enhanced RAG Batch A+B 已实现 (2026-03-28)，115 个测试通过。
 - **Python 后端**：保留为行为基线和回滚目标，不可删除。
 - **前端**：`frontend/` 为当前生产前端；`NEWTON/` 为产品设计的目标聊天式 UI，迁移计划已确认。
 - **Batch A 完成**：Query 改写（COB 关键词 + Collateral 结构化）、答案溯源（Citation）、离线评估（RAGAS sidecar）。Feature flags: `rag.query-rewrite.enabled`, `rag.citation.enabled`。
+- **Batch B 完成**：多轮对话（Session + 滑动窗口记忆）、SSE流式输出、用户反馈（👍👎）、推荐追问、答案置信度、Citation显示优化。
 - **RAGAS sidecar**：`ragas-evaluator/`（Python FastAPI + Docker），端口 8002。
 - **Pending work**：docling-java integration — 添加 docling 作为 BDA 之外的替代文档解析器。见 `control/docling/`。
-- **Next**：Enhanced RAG Batch B — 多轮对话 + 流式输出 + Spring AI 迁移。
+- **Next**：前端对接 Batch B API（Session UI、反馈按钮、流式显示）、Docling 集成。
 - 不要将此仓库当作"仅 Python"项目。Java 后端尚未完全切换。
 
 ## Source of Truth Documents
@@ -116,7 +117,7 @@ backend-java/
     └── test/java/                          # 24 test classes (unit + contract + integration + regression)
 ```
 
-### REST API Endpoints (10 total)
+### REST API Endpoints (19 total)
 
 | # | Method | Path | Controller | Purpose |
 |---|--------|------|------------|---------|
@@ -125,11 +126,20 @@ backend-java/
 | 3 | `GET` | `/processed_files` | UploadController | List processed files `[{filename, index_name}]` |
 | 4 | `GET` | `/get_index/{filename}` | UploadController | Lookup index name by filename |
 | 5 | `POST` | `/rag_answer` | RagController | RAG query: retrieve → rerank → LLM answer |
-| 6 | `GET` | `/top_questions/{index_name}` | QuestionController | Hot questions for single index |
-| 7 | `GET` | `/top_questions_multi` | QuestionController | Hot questions across multiple indices |
-| 8 | `GET` | `/admin/parse_results` | AdminController | List BDA parse result summaries |
-| 9 | `GET` | `/admin/parse_results/{indexName}/raw` | AdminController | Raw BDA JSON output |
-| 10 | `GET` | `/admin/parse_results/{indexName}/chunks` | AdminController | Indexed chunk details |
+| 6 | `POST` | `/rag_answer/stream` | RagController | SSE streaming RAG answer |
+| 7 | `GET` | `/top_questions/{index_name}` | QuestionController | Hot questions for single index |
+| 8 | `GET` | `/top_questions_multi` | QuestionController | Hot questions across multiple indices |
+| 9 | `POST` | `/sessions` | ChatSessionController | Create new chat session |
+| 10 | `GET` | `/sessions` | ChatSessionController | List sessions (paginated) |
+| 11 | `GET` | `/sessions/{id}` | ChatSessionController | Session detail with messages |
+| 12 | `DELETE` | `/sessions/{id}` | ChatSessionController | Delete session |
+| 13 | `PATCH` | `/sessions/{id}` | ChatSessionController | Rename session |
+| 14 | `POST` | `/sessions/{sid}/messages/{mid}/feedback` | ChatSessionController | Submit feedback |
+| 15 | `GET` | `/admin/parse_results` | AdminController | List BDA parse result summaries |
+| 16 | `GET` | `/admin/parse_results/{indexName}/raw` | AdminController | Raw BDA JSON output |
+| 17 | `GET` | `/admin/parse_results/{indexName}/chunks` | AdminController | Indexed chunk details |
+| 18 | `GET` | `/admin/feedback` | AdminController | List feedback (paginated) |
+| 19 | `GET` | `/admin/feedback/stats` | AdminController | Feedback statistics |
 
 ### AWS Service Dependencies
 

@@ -2,25 +2,39 @@
 
 ## 当前状态
 
-**阶段:** 设计+计划完成，待开始实施
+**阶段:** 后端实施完成，前端对接待做
 **日期:** 2026-03-28
 
 ### 里程碑进度
 
 | # | 里程碑 | 状态 | 完成日期 |
 |---|--------|------|---------|
-| 1 | Database + Domain | 待开始 | — |
-| 2 | Session管理 + 对话记忆 | 待开始 | — |
-| 3 | 流式输出 | 待开始 | — |
-| 4 | 推荐追问 + 置信度 + Citation优化 | 待开始 | — |
-| 5 | 用户反馈 | 待开始 | — |
-| 6 | Final Verification | 待开始 | — |
+| 1 | Database + Domain | 完成 | 2026-03-28 |
+| 2 | Session管理 + 对话记忆 | 完成 | 2026-03-28 |
+| 3 | 流式输出 | 完成 | 2026-03-28 |
+| 4 | 推荐追问 + 置信度 + Citation优化 | 完成 | 2026-03-28 |
+| 5 | 用户反馈 + 管线集成 | 完成（前端延后） | 2026-03-28 |
+| 6 | Final Verification | 完成 | 2026-03-28 |
 
 ### 测试统计
 
 - Batch A测试: 86 通过
-- Batch B新增: 0 / ~TBD
-- 总计: 86
+- Batch B新增: 29
+- 总计: 115
+
+### 新增 REST API
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/sessions` | 创建新对话 |
+| `GET` | `/sessions` | 列出对话（分页） |
+| `GET` | `/sessions/{id}` | 对话详情+消息历史 |
+| `DELETE` | `/sessions/{id}` | 删除对话 |
+| `PATCH` | `/sessions/{id}` | 重命名对话 |
+| `POST` | `/sessions/{sid}/messages/{mid}/feedback` | 提交反馈 |
+| `POST` | `/rag_answer/stream` | SSE流式问答 |
+| `GET` | `/admin/feedback` | 反馈列表 |
+| `GET` | `/admin/feedback/stats` | 反馈统计 |
 
 ## 已做出的决策
 
@@ -30,6 +44,7 @@
 | 2026-03-28 | 不引入Langfuse | POC查询量小(~120/天)，RAGAS已覆盖离线评估 |
 | 2026-03-28 | 对话记忆用滑动窗口+压缩 | 短对话零开销，长对话不丢上下文 |
 | 2026-03-28 | 流式用SSE而非WebSocket | 单向推送够用，不需要引入WebFlux |
+| 2026-03-28 | 流式暂用同步分块回退 | 当前仅有同步BedrockRuntimeClient，async client延后 |
 | 2026-03-28 | 推荐追问同Prompt生成 | 零额外LLM调用，和流式天然配合 |
 | 2026-03-28 | 答案置信度基于rerank分数 | 零LLM成本，已有rerank分数 |
 | 2026-03-28 | Citation文件名用PG回退 | 存量文档无metadata.filename，PG有全量记录 |
@@ -40,6 +55,8 @@
 - Session无TTL清理 — POC阶段可接受，上线前加定期清理
 - OCR噪声过滤为正则粗清理 — 根因解决靠Docling集成
 - 流式中断生成（用户取消）— 当前不支持，后续可升级WebSocket
+- 流式使用同步分块回退 — 等引入 BedrockRuntimeAsyncClient 后升级为真正streaming
+- 前端👍👎按钮最小对接 — 延后到前端迭代时一并实现
 
 ## 参考文档
 

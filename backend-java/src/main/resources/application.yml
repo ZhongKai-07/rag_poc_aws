@@ -46,5 +46,14 @@ huatai:
     # rewrite-model-id: ${RAG_REWRITE_MODEL_ID:anthropic.claude-3-haiku-20240307-v1:0}
     rewrite-model-id: ${RAG_REWRITE_MODEL_ID:qwen.qwen3-235b-a22b-2507-v1:0}
 
+  conversation:
+    window-size: ${CONVERSATION_WINDOW_SIZE:10}
+    keep-recent: ${CONVERSATION_KEEP_RECENT:6}
+  streaming:
+    core-pool-size: ${STREAMING_CORE_POOL:4}
+    max-pool-size: ${STREAMING_MAX_POOL:8}
+    queue-capacity: ${STREAMING_QUEUE:50}
+    timeout: ${STREAMING_TIMEOUT:60s}
+
 server:
   port: 8001
